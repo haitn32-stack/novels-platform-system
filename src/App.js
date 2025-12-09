@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import Register from './ui/register';
 import Login from './ui/login';
 import Dashboard from "./ui/admin/dashboard";
+import NovelManager from './ui/manager/manager-list';
 
 // Component bảo vệ Route Admin
 const AdminRoute = ({ children }) => {
@@ -14,6 +15,14 @@ const AdminRoute = ({ children }) => {
 
     return children;
 };
+const ManagerRoute = ({ children }) => {
+    const { currentUser } = useSelector((state) => state.auth);
+
+    if (!currentUser) return <Navigate to="/login" />;
+    if (currentUser.roles !== 'manager') return <div style={{ color: 'red' }}>Bạn không có quyền truy cập trang này!</div>;
+
+    return children;
+};
 
 function App() {
     return (
@@ -21,7 +30,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login title="Đăng nhập" />} />
                 <Route path="/register" element={<Register title="Đăng ký" />} />
-
+            <Route path='/mana' element ={<NovelManager title = 'Quản Lý'/>} />
 
                 <Route
                     path="/admin/*"
@@ -32,6 +41,16 @@ function App() {
                                 {/* Thêm route quản lý user ở đây */}
                             </Routes>
                         </AdminRoute>
+                    }
+                />
+                <Route
+                    path="/manager/*"
+                    element={
+                        <ManagerRoute>
+                            <Routes>
+                                <Route path="dashboard" element={<NovelManager />} />
+                            </Routes>
+                        </ManagerRoute>
                     }
                 />
 
