@@ -28,10 +28,13 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
+
+                {/* Public routes */}
                 <Route path="/login" element={<Login title="Đăng nhập" />} />
                 <Route path="/register" element={<Register title="Đăng ký" />} />
-            <Route path='/mana' element ={<NovelManager title = 'Quản Lý'/>} />
 
+
+                {/* Admin routes */}
                 <Route
                     path="/admin/*"
                     element={

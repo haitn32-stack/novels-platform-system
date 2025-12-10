@@ -1,46 +1,259 @@
 {
     "users": [
         {
-            "id": "1",
+            "userId": "u001",
             "userName": "admin01",
-            "pwd": "123",
-            "email": "admin@novels.com",
-            "roles": "admin"
+            "pwd": "123456",
+            "email": "admin01@gmail.com",
+            "role": "admin",
+            "avatar": "https://example.com/avatar/admin01.png",
+            "status": "active",
+            "createdAt": "2024-12-01",
+            "updatedAt": "2024-12-02",
+            "favourites": []
         },
         {
-            "id": "2",
+            "userId": "u002",
             "userName": "manager01",
-            "pwd": "123",
-            "email": "manager@novels.com",
-            "roles": "manager"
+            "pwd": "123456",
+            "email": "manager01@gmail.com",
+            "role": "manager",
+            "avatar": "https://example.com/avatar/manager01.png",
+            "status": "active",
+            "createdAt": "2024-11-15",
+            "updatedAt": "2024-12-02",
+            "favourites": []
         },
         {
-            "id": "3",
-            "userName": "reader01",
-            "pwd": "123",
-            "email": "reader@novels.com",
-            "roles": "reader"
+            "userId": "u003",
+            "userName": "user01",
+            "pwd": "123456",
+            "email": "user01@gmail.com",
+            "role": "user",
+            "avatar": "https://example.com/avatar/user01.png",
+            "status": "active",
+            "createdAt": "2024-12-03",
+            "updatedAt": "2024-12-04",
+            "favourites": [
+                "n002",
+                "n005"
+            ]
         }
     ],
     "novels": [
         {
-            "id": "1",
-            "novelName": "Hành Trình Về Phương Đông",
+            "novelId": "n001",
+            "novelName": "Awakening of the Mystic Realm",
+            "description": "A young man awakens mysterious powers in an alternate world filled with magic.",
+            "imgLink": "https://example.com/novels/n001.jpg",
+            "genres": [
+                "Fantasy",
+                "Action"
+            ],
+            "author": "Allen Tran",
+            "status": "ongoing",
+            "rate": 4.5,
+            "views": 10200,
+            "totalChapters": 3,
+            "uploadBy": "u002",
+            "createdAt": "2024-10-20",
+            "updatedAt": "2024-12-01"
+        },
+        {
+            "novelId": "n002",
+            "novelName": "The Forgotten Land",
+            "description": "An epic journey to uncover secrets of an ancient abandoned civilization.",
+            "imgLink": "https://example.com/novels/n002.jpg",
             "genres": [
                 "Adventure",
-                "Spiritual"
+                "Mystery"
             ],
-            "img": "url_to_image",
-            "description": "Cuốn sách về tâm linh...",
-            "rate": 5
+            "author": "Laura Leighton",
+            "status": "completed",
+            "rate": 4.7,
+            "views": 21000,
+            "totalChapters": 2,
+            "uploadBy": "u002",
+            "createdAt": "2024-09-12",
+            "updatedAt": "2024-12-02"
+        },
+        {
+            "novelId": "n003",
+            "novelName": "The Yin-Yang Scholar",
+            "description": "A gifted scholar becomes entangled in supernatural incidents and exorcisms.",
+            "imgLink": "https://example.com/novels/n003.jpg",
+            "genres": [
+                "Horror",
+                "Supernatural"
+            ],
+            "author": "Henry Bao",
+            "status": "ongoing",
+            "rate": 4.3,
+            "views": 8800,
+            "totalChapters": 2,
+            "uploadBy": "u002",
+            "createdAt": "2024-11-01",
+            "updatedAt": "2024-12-03"
+        },
+        {
+            "novelId": "n004",
+            "novelName": "Earth's Final Day",
+            "description": "Humanity faces extinction as a mysterious cosmic threat approaches Earth.",
+            "imgLink": "https://example.com/novels/n004.jpg",
+            "genres": [
+                "Sci-Fi",
+                "Thriller"
+            ],
+            "author": "Nathan Pham",
+            "status": "ongoing",
+            "rate": 4.1,
+            "views": 7600,
+            "totalChapters": 2,
+            "uploadBy": "u002",
+            "createdAt": "2024-10-05",
+            "updatedAt": "2024-12-02"
+        },
+        {
+            "novelId": "n005",
+            "novelName": "Pieces of Love",
+            "description": "A gentle romantic story set in a bustling modern city.",
+            "imgLink": "https://example.com/novels/n005.jpg",
+            "genres": [
+                "Romance",
+                "Drama"
+            ],
+            "author": "Nina Tate",
+            "status": "completed",
+            "rate": 4.8,
+            "views": 34000,
+            "totalChapters": 1,
+            "uploadBy": "u002",
+            "createdAt": "2024-08-22",
+            "updatedAt": "2024-12-02"
         }
     ],
     "chapters": [
         {
-            "id": "1",
-            "novelId": "1",
-            "title": "Chương 1: Khởi hành",
-            "content": "Nội dung chương 1..."
+            "chapterId": "c001",
+            "novelId": "n001",
+            "chapterNumber": 1,
+            "title": "The Awakening",
+            "content": "Chapter 1 content for n001...",
+            "views": 1200,
+            "createdAt": "2024-11-01",
+            "prevChapterId": null,
+            "nextChapterId": "c002"
+        },
+        {
+            "chapterId": "c002",
+            "novelId": "n001",
+            "chapterNumber": 2,
+            "title": "A Strange Power",
+            "content": "Chapter 2 content for n001...",
+            "views": 1150,
+            "createdAt": "2024-11-05",
+            "prevChapterId": "c001",
+            "nextChapterId": "c003"
+        },
+        {
+            "chapterId": "c003",
+            "novelId": "n001",
+            "chapterNumber": 3,
+            "title": "Fateful Encounter",
+            "content": "Chapter 3 content for n001...",
+            "views": 980,
+            "createdAt": "2024-11-10",
+            "prevChapterId": "c002",
+            "nextChapterId": null
+        },
+        {
+            "chapterId": "c004",
+            "novelId": "n002",
+            "chapterNumber": 1,
+            "title": "Ancient Rumors",
+            "content": "Chapter 1 content for n002...",
+            "views": 1600,
+            "createdAt": "2024-09-15",
+            "prevChapterId": null,
+            "nextChapterId": "c005"
+        },
+        {
+            "chapterId": "c005",
+            "novelId": "n002",
+            "chapterNumber": 2,
+            "title": "Into the Forgotten Land",
+            "content": "Chapter 2 content for n002...",
+            "views": 1500,
+            "createdAt": "2024-09-20",
+            "prevChapterId": "c004",
+            "nextChapterId": null
+        },
+        {
+            "chapterId": "c006",
+            "novelId": "n003",
+            "chapterNumber": 1,
+            "title": "Strange Shadows",
+            "content": "Chapter 1 content for n003...",
+            "views": 900,
+            "createdAt": "2024-11-05",
+            "prevChapterId": null,
+            "nextChapterId": "c007"
+        },
+        {
+            "chapterId": "c007",
+            "novelId": "n003",
+            "chapterNumber": 2,
+            "title": "The Scholar’s Secret",
+            "content": "Chapter 2 content for n003...",
+            "views": 850,
+            "createdAt": "2024-11-12",
+            "prevChapterId": "c006",
+            "nextChapterId": null
+        },
+        {
+            "chapterId": "c008",
+            "novelId": "n004",
+            "chapterNumber": 1,
+            "title": "The Warning",
+            "content": "Chapter 1 content for n004...",
+            "views": 700,
+            "createdAt": "2024-10-08",
+            "prevChapterId": null,
+            "nextChapterId": "c009"
+        },
+        {
+            "chapterId": "c009",
+            "novelId": "n004",
+            "chapterNumber": 2,
+            "title": "Panic Rising",
+            "content": "Chapter 2 content for n004...",
+            "views": 650,
+            "createdAt": "2024-10-15",
+            "prevChapterId": "c008",
+            "nextChapterId": null
+        },
+        {
+            "chapterId": "c010",
+            "novelId": "n005",
+            "chapterNumber": 1,
+            "title": "A Chance Encounter",
+            "content": "Chapter 1 content for n005...",
+            "views": 2000,
+            "createdAt": "2024-08-25",
+            "prevChapterId": null,
+            "nextChapterId": null
+        }
+    ],
+    "favourites": [
+        {
+            "userId": "u003",
+            "novelId": "n002",
+            "likedAt": "2024-12-03"
+        },
+        {
+            "userId": "u003",
+            "novelId": "n005",
+            "likedAt": "2024-12-04"
         }
     ]
 }
