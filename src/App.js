@@ -5,7 +5,7 @@ import Register from './ui/register';
 import Login from './ui/login';
 import Dashboard from "./ui/admin/dashboard";
 import NovelManager from './ui/manager/manager-list';
-
+import HomepageUser from './ui/user/homepageUser';
 // Component bảo vệ Route Admin
 const AdminRoute = ({ children }) => {
     const { currentUser } = useSelector((state) => state.auth);
@@ -30,7 +30,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login title="Đăng nhập" />} />
                 <Route path="/register" element={<Register title="Đăng ký" />} />
-            <Route path='/mana' element ={<NovelManager title = 'Quản Lý'/>} />
+                <Route path='/mana' element={<NovelManager title='Quản Lý' />} />
 
                 <Route
                     path="/admin/*"
@@ -53,11 +53,26 @@ function App() {
                         </ManagerRoute>
                     }
                 />
-
+                <Route path="/homepageUser" element={<HomepageUser />} />
+                <Route path="/" element={<HomeRedirect />} />
                 <Route path="/" element={<div>Trang chủ cho Reader</div>} />
             </Routes>
         </BrowserRouter>
     );
 }
+const HomeRedirect = () => {
+    const { currentUser } = useSelector((state) => state.auth);
+
+    if (!currentUser) {
+        return <Navigate to="/homepageUser" replace />;
+    }
+
+    const role = (currentUser.roles || '').toLowerCase();
+    if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+
+    if (role === 'user' || role === 'reader') return <Navigate to="/homepageUser" replace />;
+
+    return <Navigate to="/homepageUser" replace />;
+};
 
 export default App;
