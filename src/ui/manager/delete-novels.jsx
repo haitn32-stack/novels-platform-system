@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Container, Button } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import Sidebar from "./sidebar";
 
 export default function DeleteNovel() {
   const { id } = useParams();
@@ -28,7 +27,6 @@ export default function DeleteNovel() {
 
   return (
     <div>
-      {/* <Sidebar /> */}
       <Container className="p-5 text-center">
         <h2 className="text-danger fw-bold">Delete Novel</h2>
         <p>Are you sure you want to delete:</p>

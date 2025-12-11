@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { authActions } from "../../feature/auth/authSlice";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import SideBar from "./SideBarrr";
 
 const CreateNovel = () => {
   const [novelName, setNovelName] = useState("");
@@ -16,12 +16,9 @@ const CreateNovel = () => {
   const [allGenres, setAllGenres] = useState([]);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  // lấy user đang đăng nhập
   const currentUser = useSelector((state) => state.auth.user);
 
-  // load genres từ database mới
   useEffect(() => {
     fetch("http://localhost:9999/novels")
       .then((res) => res.json())
@@ -30,11 +27,6 @@ const CreateNovel = () => {
         setAllGenres(unique);
       });
   }, []);
-
-  const handleLogout = () => {
-    dispatch(authActions.logout());
-    navigate("/login");
-  };
 
   const handleGenreChange = (g) => {
     if (genres.includes(g)) {
@@ -61,7 +53,7 @@ const CreateNovel = () => {
       imgLink,
       genres,
       author,
-      status, // ongoing | completed | hiatus
+      status,
       rate: Number(rate),
       views: 0,
       totalChapters: 0,
@@ -81,85 +73,68 @@ const CreateNovel = () => {
   };
 
   return (
-    <Row className="m-0">
-      <Col md={2} className="p-0">
+    <div className="d-flex" style={{ minHeight: "100vh" }}>
+      <SideBar
+        onNavigate={(page) => navigate(`/manager/${page}`)}
+        currentPage="create"
+      />
+
+      <Container
+        fluid
+        className="p-5 flex-grow-1"
+        style={{
+          background: "linear-gradient(135deg, #e6f2ff, #ffffff)",
+        }}
+      >
         <div
+          className="p-4"
           style={{
-            width: 240,
-            background:
-              "linear-gradient(180deg,rgb(77, 124, 196) 0%,rgb(60, 115, 178) 100%)",
-            color: "white",
-            padding: 20,
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
+            background: "white",
+            borderRadius: 20,
+            boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
           }}
         >
-          <h4 className="fw-bold mb-4 text-center">Dashboard</h4>
-
-          <button
-            className="btn btn-outline-light mb-2 text-start"
-            onClick={() => navigate("/manager/dashboard")}
-          >
-            Home
-          </button>
-
-          <button
-            className="btn btn-outline-light mb-2 text-start"
-            onClick={() => navigate("/manager/novels")}
-          >
-            Novels
-          </button>
-
-          <div style={{ flexGrow: 1 }} />
-
-          <button className="btn btn-danger" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </Col>
-
-      <Col md={10}>
-        <Container className="p-4">
-          <h3 className="mb-3 text-primary fw-bold">Create New Novel</h3>
+          <h3 className="mb-4 text-primary fw-bold text-center">
+            Create New Novel
+          </h3>
 
           <Form onSubmit={handleSubmit}>
-            {/* Name */}
             <Form.Group className="mb-3">
               <Form.Label>Novel Name</Form.Label>
               <Form.Control
                 value={novelName}
                 onChange={(e) => setNovelName(e.target.value)}
                 required
+                className="rounded-pill"
               />
             </Form.Group>
 
-            {/* Image */}
             <Form.Group className="mb-3">
               <Form.Label>Image Link</Form.Label>
               <Form.Control
                 value={imgLink}
                 onChange={(e) => setImgLink(e.target.value)}
                 required
+                className="rounded-pill"
               />
             </Form.Group>
 
-            {/* Author */}
             <Form.Group className="mb-3">
               <Form.Label>Author</Form.Label>
               <Form.Control
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
+                className="rounded-pill"
               />
             </Form.Group>
 
-            {/* Status */}
             <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
               <Form.Select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
+                className="rounded-pill"
               >
                 <option value="ongoing">Ongoing</option>
                 <option value="completed">Completed</option>
@@ -167,7 +142,6 @@ const CreateNovel = () => {
               </Form.Select>
             </Form.Group>
 
-            {/* Description */}
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
@@ -175,10 +149,10 @@ const CreateNovel = () => {
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                style={{ borderRadius: 15 }}
               />
             </Form.Group>
 
-            {/* Rate */}
             <Form.Group className="mb-3">
               <Form.Label>Rate (0 - 5)</Form.Label>
               <Form.Control
@@ -188,16 +162,16 @@ const CreateNovel = () => {
                 max={5}
                 step={0.1}
                 onChange={(e) => setRate(e.target.value)}
+                className="rounded-pill"
               />
             </Form.Group>
 
-            {/* Genres */}
             <Form.Group className="mb-3">
               <Form.Label>Genres</Form.Label>
 
               <Row>
                 {allGenres.map((g) => (
-                  <Col md={4} key={g}>
+                  <Col md={4} key={g} className="mb-2">
                     <Form.Check
                       type="checkbox"
                       label={g}
@@ -209,13 +183,15 @@ const CreateNovel = () => {
               </Row>
             </Form.Group>
 
-            <Button type="submit" className="mt-2" variant="success">
-              Create Novel
-            </Button>
+            <div className="text-center mt-4">
+              <Button type="submit" className="px-5 py-2" variant="success">
+                Create Novel
+              </Button>
+            </div>
           </Form>
-        </Container>
-      </Col>
-    </Row>
+        </div>
+      </Container>
+    </div>
   );
 };
 
