@@ -82,7 +82,7 @@ const Register = ({ title }) => {
                                 type="text"
                                 placeholder="Chọn tên đăng nhập"
                                 value={formData.userName}
-                                onChange={(e) => setFormData({...formData, userName: e.target.value})}
+                                onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
                             />
                         </Form.Group>
 
@@ -92,7 +92,7 @@ const Register = ({ title }) => {
                                 type="email"
                                 placeholder="nhap@email.com"
                                 value={formData.email}
-                                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             />
                         </Form.Group>
 
@@ -102,7 +102,7 @@ const Register = ({ title }) => {
                                 type="password"
                                 placeholder="Mật khẩu"
                                 value={formData.pwd}
-                                onChange={(e) => setFormData({...formData, pwd: e.target.value})}
+                                onChange={(e) => setFormData({ ...formData, pwd: e.target.value })}
                             />
                         </Form.Group>
 
@@ -112,7 +112,7 @@ const Register = ({ title }) => {
                                 type="password"
                                 placeholder="Nhập lại mật khẩu"
                                 value={formData.confirmPwd}
-                                onChange={(e) => setFormData({...formData, confirmPwd: e.target.value})}
+                                onChange={(e) => setFormData({ ...formData, confirmPwd: e.target.value })}
                             />
                         </Form.Group>
 
