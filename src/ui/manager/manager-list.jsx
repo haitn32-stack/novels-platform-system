@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -13,49 +13,57 @@ import { useDispatch } from "react-redux";
 import { authActions } from "../../feature/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 
-// fake data
-const data = [
-  { id: 1, title: "Shadow Emperor", genre: "Action", views: 12000 },
-  { id: 2, title: "Reborn to Rule", genre: "Fantasy", views: 9800 },
-  { id: 3, title: "Love in the Mist", genre: "Romance", views: 5500 },
-  { id: 4, title: "Villain's Return", genre: "Action", views: 17800 },
-  { id: 5, title: "The Mage's Path", genre: "Fantasy", views: 7600 },
-  { id: 6, title: "Last Winter", genre: "Romance", views: 3100 },
-  { id: 7, title: "Dragon Spirit", genre: "Fantasy", views: 14300 },
-  { id: 8, title: "Urban Chaos", genre: "Action", views: 8400 },
-  { id: 9, title: "Sweet Promise", genre: "Romance", views: 9200 },
-  { id: 10, title: "Hero's Testament", genre: "Action", views: 15000 },
-];
-
 export default function NovelManager() {
   const [search, setSearch] = useState("");
   const [genre, setGenre] = useState("All");
   const [sort, setSort] = useState("");
   const [page, setPage] = useState(1);
+  const [showDelete, setShowDelete] = useState(false);
+  const [selectedNovel, setSelectedNovel] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+
+  const [origin, setOrigin] = useState([]);
+  const [list, setList] = useState([]);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const perPage = 5;
 
-  const list = useMemo(() => {
-    let result = [...data];
+  useEffect(() => {
+    fetch("http://localhost:9999/novels")
+      .then((res) => res.json())
+      .then((data) => {
+        setOrigin(data);
+        setList(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    let result = [...origin];
 
     if (search) {
       result = result.filter((n) =>
-        n.title.toLowerCase().includes(search.toLowerCase())
+        n.novelName.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     if (genre !== "All") {
-      result = result.filter((n) => n.genre === genre);
+      result = result.filter((n) => n.genres.includes(genre));
     }
 
-    if (sort === "views-desc") result.sort((a, b) => b.views - a.views);
-    if (sort === "views-asc") result.sort((a, b) => a.views - b.views);
+    if (sort === "views-desc") result.sort((a, b) => b.rate - a.rate);
+    if (sort === "views-asc") result.sort((a, b) => a.rate - b.rate);
 
-    return result;
-  }, [search, genre, sort]);
+    setList(result);
+    setPage(1);
+  }, [search, genre, sort, origin]);
 
   const totalPages = Math.ceil(list.length / perPage);
   const display = list.slice((page - 1) * perPage, page * perPage);
@@ -65,12 +73,20 @@ export default function NovelManager() {
     navigate("/login");
   };
 
+  const uniqueGenres = ["All", ...new Set(origin.flatMap((n) => n.genres))];
+
+  if (loading)
+    return (
+      <h3 className="text-center mt-5 fw-bold text-primary">Loading...</h3>
+    );
+
   return (
     <div className="d-flex" style={{ minHeight: "100vh" }}>
       <div
         style={{
           width: 240,
-          background: "linear-gradient(180deg,rgb(77, 124, 196) 0%,rgb(60, 115, 178) 100%)",
+          background:
+            "linear-gradient(180deg,rgb(77, 124, 196) 0%,rgb(60, 115, 178) 100%)",
           color: "white",
           padding: 20,
           display: "flex",
@@ -82,13 +98,6 @@ export default function NovelManager() {
 
         <button
           className="btn btn-outline-light mb-2 text-start"
-          style={{ transition: "0.2s" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "transparent")
-          }
           onClick={() => navigate("/manager/dashboard")}
         >
           Home
@@ -96,16 +105,9 @@ export default function NovelManager() {
 
         <button
           className="btn btn-outline-light mb-2 text-start"
-          style={{ transition: "0.2s" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "transparent")
-          }
-          onClick={() => navigate("/manager/dashboard")}
+          onClick={() => navigate("/manager/create")}
         >
-          Home
+          Novels
         </button>
 
         <div style={{ flexGrow: 1 }} />
@@ -114,7 +116,6 @@ export default function NovelManager() {
           Logout
         </button>
       </div>
-
       <Container
         className="p-5 flex-grow-1"
         style={{
@@ -136,34 +137,32 @@ export default function NovelManager() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="rounded-pill"
-                style={{ borderColor: "#cbe1ff" }}
               />
             </Col>
 
             <Col md={4}>
               <Form.Select
                 className="rounded-pill"
-                style={{ borderColor: "#cbe1ff" }}
                 value={genre}
                 onChange={(e) => setGenre(e.target.value)}
               >
-                <option value="All">All Genres</option>
-                <option value="Action">Action</option>
-                <option value="Fantasy">Fantasy</option>
-                <option value="Romance">Romance</option>
+                {uniqueGenres.map((g, index) => (
+                  <option key={index} value={g}>
+                    {g}
+                  </option>
+                ))}
               </Form.Select>
             </Col>
 
             <Col md={4}>
               <Form.Select
                 className="rounded-pill"
-                style={{ borderColor: "#cbe1ff" }}
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
               >
-                <option value="">Sort by Views</option>
-                <option value="views-desc">Most Viewed</option>
-                <option value="views-asc">Least Viewed</option>
+                <option value="">Sort by Rate</option>
+                <option value="views-desc">High Rate</option>
+                <option value="views-asc">Low Rate</option>
               </Form.Select>
             </Col>
           </Row>
@@ -178,27 +177,40 @@ export default function NovelManager() {
               <tr className="text-center">
                 <th>ID</th>
                 <th>Title</th>
-                <th>Genre</th>
-                <th>Views</th>
+                <th>Genres</th>
+                <th>Rate</th>
+                <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
               {display.map((n) => (
-                <tr
-                  key={n.id}
-                  style={{ cursor: "pointer", transition: "0.2s" }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#eaf4ff")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "white")
-                  }
-                >
+                <tr key={n.id}>
                   <td className="text-center fw-bold">{n.id}</td>
-                  <td>{n.title}</td>
-                  <td className="text-center">{n.genre}</td>
-                  <td className="text-center">{n.views.toLocaleString()}</td>
+                  <td>{n.novelName}</td>
+                  <td className="text-center">{n.genres.join(", ")}</td>
+
+                  <td className="text-center d-flex justify-content-center align-items-center gap-2">
+                    {n.rate}
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-warning m-1 "
+                      onClick={() => navigate(`/manager/update/${n.id}`)}
+                    >
+                      Update
+                    </button>
+
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => {
+                        setSelectedNovel(n);
+                        setShowDelete(true);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -217,6 +229,68 @@ export default function NovelManager() {
             ))}
           </Pagination>
         </Card>
+        {showDelete && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{
+              background: "rgba(0,0,0,0.5)",
+              zIndex: 1050,
+            }}
+          >
+            <div
+              className="bg-white p-4 rounded"
+              style={{
+                width: 400,
+                top: "30%",
+                left: "50%",
+                position: "absolute",
+                transform: "translateX(-50%)",
+              }}
+            >
+              <h4 className="text-danger fw-bold text-center">
+                Confirm Delete
+              </h4>
+
+              <p className="text-center">
+                Are you sure you want to delete:
+                <br />
+                <b>{selectedNovel?.novelName}</b>
+              </p>
+
+              <div className="d-flex justify-content-center gap-3 mt-3">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowDelete(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="btn btn-danger"
+                  onClick={async () => {
+                    await fetch(
+                      `http://localhost:9999/novels/${selectedNovel.id}`,
+                      {
+                        method: "DELETE",
+                      }
+                    );
+
+                    // load lại list
+                    const res = await fetch("http://localhost:9999/novels");
+                    const data = await res.json();
+                    setOrigin(data);
+                    setList(data);
+
+                    setShowDelete(false);
+                    alert("Deleted Successfully!");
+                  }}
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Container>
     </div>
   );
