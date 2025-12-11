@@ -9,6 +9,9 @@ import {
   Table,
   Pagination,
 } from "react-bootstrap";
+import { useDispatch } from "react-redux";
+import { authActions } from "../../feature/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function NovelManager() {
   const [search, setSearch] = useState("");
@@ -22,6 +25,9 @@ export default function NovelManager() {
 
   const [origin, setOrigin] = useState([]);
   const [list, setList] = useState([]);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const perPage = 5;
 
@@ -178,9 +184,9 @@ export default function NovelManager() {
             </thead>
 
             <tbody>
-              {display.map((n) => (
-                <tr key={n.id}>
-                  <td className="text-center fw-bold">{n.id}</td>
+              {display.map((n, index) => (
+                <tr key={n.id} >
+                  <td className="text-center fw-bold">{index + 1}</td>
                   <td>{n.novelName}</td>
                   <td className="text-center">{n.genres.join(", ")}</td>
 
