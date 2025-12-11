@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "userId": "u001",
+      "id": "u001",
       "userName": "admin01",
       "pwd": "123456",
       "email": "admin01@gmail.com",
@@ -13,7 +13,7 @@
       "favourites": []
     },
     {
-      "userId": "u002",
+      "id": "u002",
       "userName": "manager01",
       "pwd": "123456",
       "email": "manager01@gmail.com",
@@ -25,7 +25,7 @@
       "favourites": []
     },
     {
-      "userId": "u003",
+      "id": "u003",
       "userName": "user01",
       "pwd": "123456",
       "email": "user01@gmail.com",
@@ -38,6 +38,13 @@
         "n002",
         "n005"
       ]
+    },
+    {
+      "userName": "test",
+      "email": "test01@gmail.com",
+      "pwd": "123456",
+      "roles": "reader",
+      "id": "spHZAde"
     }
   ],
   "novels": [
