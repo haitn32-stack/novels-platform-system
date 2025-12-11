@@ -8,11 +8,13 @@ import NovelManager from "./ui/manager/manager-list";
 import CreateNovel from "./ui/manager/create-novels";
 import UpdateNovel from "./ui/manager/update-novels";
 import DeleteNovel from "./ui/manager/delete-novels";
-import HomepageUser from './ui/user/homepageUser';
-import SearchBook from './ui/user/searchBook';
-import NovelDetail from './ui/user/novelDetail';
-import Profile from './ui/user/profile';
-import ChapterDetail from './ui/user/ChapterDetail';
+import HomepageUser from "./ui/user/homepageUser";
+import SearchBook from "./ui/user/searchBook";
+import NovelDetail from "./ui/user/novelDetail";
+import Profile from "./ui/user/profile";
+import ChapterDetail from "./ui/user/ChapterDetail";
+import CreateChapter from "./ui/manager/CreateChapter";
+import ManagerNovelDetail from "./ui/manager/NovelDetail";
 const AdminRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.auth);
   if (!currentUser) return <Navigate to="/login" />;
@@ -60,6 +62,11 @@ function App() {
                 <Route path="create" element={<CreateNovel />} />
                 <Route path="update/:id" element={<UpdateNovel />} />
                 <Route path="delete/:id" element={<DeleteNovel />} />
+                <Route path="novel/:id" element={<ManagerNovelDetail />} />
+                <Route
+                  path="novel/:id/add"
+                  element={<CreateChapter />}
+                />
               </Routes>
             </ManagerRoute>
           }

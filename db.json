@@ -1,7 +1,7 @@
 {
   "users": [
     {
-      "id": "u001",
+      "id": 1,
       "userName": "admin01",
       "pwd": "123456",
       "email": "admin01@gmail.com",
@@ -13,7 +13,7 @@
       "favourites": []
     },
     {
-      "id": "u002",
+      "id": 2,
       "userName": "manager01",
       "pwd": "123456",
       "email": "manager01@gmail.com",
@@ -25,7 +25,7 @@
       "favourites": []
     },
     {
-      "id": "u003",
+      "id": 3,
       "userName": "user01",
       "pwd": "123456",
       "email": "user01@gmail.com",
@@ -137,6 +137,26 @@
       "uploadBy": "u002",
       "createdAt": "2024-08-22",
       "updatedAt": "2024-12-02"
+    },
+    {
+      "novelId": "n550",
+      "novelName": "Light",
+      "description": "Test....",
+      "imgLink": "https://images.unsplash.com/photo-1765451817006-4a9f9cb3afc4?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8",
+      "genres": [
+        "Action",
+        "Adventure",
+        "Horror"
+      ],
+      "author": "John",
+      "status": "ongoing",
+      "rate": 5,
+      "views": 0,
+      "totalChapters": 0,
+      "uploadBy": "u002",
+      "createdAt": "2025-12-11",
+      "updatedAt": "2025-12-11",
+      "id": "Mmt9VlL"
     }
   ],
   "chapters": [
@@ -193,7 +213,7 @@
       "views": 1500,
       "createdAt": "2024-09-20",
       "prevChapterId": "c004",
-      "nextChapterId": null
+      "nextChapterId": "c741708"
     },
     {
       "id": "c006",
@@ -248,6 +268,50 @@
       "views": 2000,
       "createdAt": "2024-08-25",
       "prevChapterId": null,
+      "nextChapterId": null
+    },
+    {
+      "id": "c905175",
+      "novelId": "n002",
+      "chapterNumber": 1,
+      "title": "LIght",
+      "content": "adscacaaads",
+      "views": 0,
+      "createdAt": "2025-12-11",
+      "prevChapterId": "c005",
+      "nextChapterId": null
+    },
+    {
+      "id": "c741708",
+      "novelId": "n002",
+      "chapterNumber": 2,
+      "title": "TEzadas",
+      "content": "CẤCDASDASD",
+      "views": 0,
+      "createdAt": "2025-12-11",
+      "prevChapterId": "c005",
+      "nextChapterId": null
+    },
+    {
+      "id": "c386467",
+      "novelId": "Mmt9VlL",
+      "chapterNumber": 1,
+      "title": "Light Den",
+      "content": "acasdasdasdads",
+      "views": 0,
+      "createdAt": "2025-12-11",
+      "prevChapterId": null,
+      "nextChapterId": "c216835"
+    },
+    {
+      "id": "c216835",
+      "novelId": "Mmt9VlL",
+      "chapterNumber": 2,
+      "title": "Light Den la",
+      "content": "acbcbcbcbcbcb",
+      "views": 0,
+      "createdAt": "2025-12-11",
+      "prevChapterId": "c386467",
       "nextChapterId": null
     }
   ],
