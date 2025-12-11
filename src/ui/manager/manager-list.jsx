@@ -181,6 +181,13 @@ export default function NovelManager() {
                     >
                       Delete
                     </button>
+
+                    <button
+                      className="btn btn-sm btn-info m-1"
+                      onClick={() => navigate(`/manager/novel/${n.id}`)}
+                    >
+                      Detail
+                    </button>
                   </td>
                 </tr>
               ))}

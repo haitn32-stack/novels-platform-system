@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Nav, Button, Offcanvas } from "react-bootstrap";
 import { FiBarChart2, FiUser, FiLogOut, FiMenu } from "react-icons/fi";
 import "./SideBar.css";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { authActions } from "../../feature/auth/authSlice";
 
 export default function SideBar({ onNavigate, currentPage }) {
   const [show, setShow] = useState(false);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+
   const routes = [
     { id: "dashboard", label: "Dashboard", icon: <FiBarChart2 size={20} /> },
     { id: "create", label: "Create", icon: <FiUser size={20} /> },
@@ -19,7 +18,8 @@ export default function SideBar({ onNavigate, currentPage }) {
     onNavigate(pageId);
     setShow(false);
   };
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleLogout = () => {
     dispatch(authActions.logout());
     navigate("/login");
