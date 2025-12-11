@@ -1,75 +1,66 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import Register from "./ui/register";
-import Login from "./ui/login";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import Register from './ui/register';
+import Login from './ui/login';
 import Dashboard from "./ui/admin/dashboard";
-import NovelManager from "./ui/manager/manager-list";
-import CreateNovel from "./ui/manager/create-novels";
-import UpdateNovel from "./ui/manager/update-novels";
-import DeleteNovel from "./ui/manager/delete-novels";
+import NovelManager from './ui/manager/manager-list';
 
 // Component bảo vệ Route Admin
 const AdminRoute = ({ children }) => {
-  const { currentUser } = useSelector((state) => state.auth);
+    const { currentUser } = useSelector((state) => state.auth);
 
-  if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.roles !== "admin")
-    return (
-      <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
-    );
+    if (!currentUser) return <Navigate to="/login" />;
+    if (currentUser.roles !== 'admin') return <div style={{ color: 'red' }}>Bạn không có quyền truy cập trang này!</div>;
 
-  return children;
+    return children;
 };
 const ManagerRoute = ({ children }) => {
-  const { currentUser } = useSelector((state) => state.auth);
+    const { currentUser } = useSelector((state) => state.auth);
 
-  if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.roles !== "manager")
-    return (
-      <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
-    );
+    if (!currentUser) return <Navigate to="/login" />;
+    if (currentUser.roles !== 'manager') return <div style={{ color: 'red' }}>Bạn không có quyền truy cập trang này!</div>;
 
-  return children;
+    return children;
 };
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login title="Đăng nhập" />} />
-        <Route path="/register" element={<Register title="Đăng ký" />} />
-        <Route path="/mana" element={<NovelManager title="Quản Lý" />} />
+    return (
+        <BrowserRouter>
+            <Routes>
 
-        <Route
-          path="/admin/*"
-          element={
-            <AdminRoute>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard />} />
-                {/* Thêm route quản lý user ở đây */}
-              </Routes>
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/manager/*"
-          element={
-            <ManagerRoute>
-              <Routes>
-                <Route path="dashboard" element={<NovelManager />} />
-                <Route path="create" element={<CreateNovel />} />
-                <Route path="/update/:id" element={<UpdateNovel />} />
-                <Route path="/delete/:id" element={<DeleteNovel />} />
-              </Routes>
-            </ManagerRoute>
-          }
-        />
+                {/* Public routes */}
+                <Route path="/login" element={<Login title="Đăng nhập" />} />
+                <Route path="/register" element={<Register title="Đăng ký" />} />
 
-        <Route path="/" element={<div>Trang chủ cho Reader</div>} />
-      </Routes>
-    </BrowserRouter>
-  );
+
+                {/* Admin routes */}
+                <Route
+                    path="/admin/*"
+                    element={
+                        <AdminRoute>
+                            <Routes>
+                                <Route path="dashboard" element={<Dashboard />} />
+                                {/* Thêm route quản lý user ở đây */}
+                            </Routes>
+                        </AdminRoute>
+                    }
+                />
+                <Route
+                    path="/manager/*"
+                    element={
+                        <ManagerRoute>
+                            <Routes>
+                                <Route path="dashboard" element={<NovelManager />} />
+                            </Routes>
+                        </ManagerRoute>
+                    }
+                />
+
+                <Route path="/" element={<div>Trang chủ cho Reader</div>} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;
