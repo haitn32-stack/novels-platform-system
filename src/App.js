@@ -8,25 +8,25 @@ import NovelManager from "./ui/manager/manager-list";
 import CreateNovel from "./ui/manager/create-novels";
 import UpdateNovel from "./ui/manager/update-novels";
 import DeleteNovel from "./ui/manager/delete-novels";
-
-// Component bảo vệ Route Admin
+import HomepageUser from './ui/user/homepageUser';
+import SearchBook from './ui/user/searchBook';
+import NovelDetail from './ui/user/novelDetail';
+import Profile from './ui/user/profile';
+import ChapterDetail from './ui/user/ChapterDetail';
 const AdminRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.auth);
-
   if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.role !== "admin")
+  if ((currentUser.role || currentUser.roles) !== "admin")
     return (
       <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
     );
-
   return children;
 };
+
 const ManagerRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.auth);
-  console.log(currentUser);
-  
   if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.role !== "manager")
+  if ((currentUser.role || currentUser.roles) !== "manager")
     return (
       <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
     );
@@ -58,17 +58,37 @@ function App() {
               <Routes>
                 <Route path="dashboard" element={<NovelManager />} />
                 <Route path="create" element={<CreateNovel />} />
-                <Route path="/update/:id" element={<UpdateNovel />} />
-                <Route path="/delete/:id" element={<DeleteNovel />} />
+                <Route path="update/:id" element={<UpdateNovel />} />
+                <Route path="delete/:id" element={<DeleteNovel />} />
               </Routes>
             </ManagerRoute>
           }
         />
+        {/* User */}
+        <Route path="/homepageUser" element={<HomepageUser />} />
+        <Route path="/searchBook" element={<SearchBook />} />
 
-        <Route path="/" element={<div>Trang chủ cho Reader</div>} />
+        {/* Novel & Chapter */}
+        <Route path="/novel/:novelId" element={<NovelDetail />} />
+        <Route path="/chapter/:chapterId" element={<ChapterDetail />} />
+
+        {/* Profile */}
+        <Route path="/profile" element={<Profile />} />
+
+        {/* Root redirect */}
+        <Route path="/" element={<HomeRedirect />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
+const HomeRedirect = () => {
+  const { currentUser } = useSelector((state) => state.auth);
+  if (!currentUser) return <Navigate to="/homepageUser" replace />;
+  const role = (currentUser.role || currentUser.roles || "").toLowerCase();
+  if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
+  if (role === "manager") return <Navigate to="/manager/dashboard" replace />;
+  return <Navigate to="/homepageUser" replace />;
+};
 
 export default App;
