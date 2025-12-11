@@ -9,9 +9,11 @@ import {
   Table,
   Pagination,
 } from "react-bootstrap";
+
 import { useDispatch } from "react-redux";
 import { authActions } from "../../feature/auth/authSlice";
 import { useNavigate } from "react-router-dom";
+import SideBar from "./SideBarrr";
 
 export default function NovelManager() {
   const [search, setSearch] = useState("");
@@ -20,7 +22,6 @@ export default function NovelManager() {
   const [page, setPage] = useState(1);
   const [showDelete, setShowDelete] = useState(false);
   const [selectedNovel, setSelectedNovel] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
   const [origin, setOrigin] = useState([]);
@@ -68,12 +69,12 @@ export default function NovelManager() {
   const totalPages = Math.ceil(list.length / perPage);
   const display = list.slice((page - 1) * perPage, page * perPage);
 
+  const uniqueGenres = ["All", ...new Set(origin.flatMap((n) => n.genres))];
+
   const handleLogout = () => {
     dispatch(authActions.logout());
     navigate("/login");
   };
-
-  const uniqueGenres = ["All", ...new Set(origin.flatMap((n) => n.genres))];
 
   if (loading)
     return (
@@ -82,41 +83,13 @@ export default function NovelManager() {
 
   return (
     <div className="d-flex" style={{ minHeight: "100vh" }}>
-      <div
-        style={{
-          width: 240,
-          background:
-            "linear-gradient(180deg,rgb(77, 124, 196) 0%,rgb(60, 115, 178) 100%)",
-          color: "white",
-          padding: 20,
-          display: "flex",
-          flexDirection: "column",
-          minHeight: "100vh",
-        }}
-      >
-        <h4 className="fw-bold mb-4 text-center">Dashboard</h4>
+      <SideBar
+        onNavigate={(page) => navigate(`/manager/${page}`)}
+        currentPage="dashboard"
+      />
 
-        <button
-          className="btn btn-outline-light mb-2 text-start"
-          onClick={() => navigate("/manager/dashboard")}
-        >
-          Home
-        </button>
-
-        <button
-          className="btn btn-outline-light mb-2 text-start"
-          onClick={() => navigate("/manager/create")}
-        >
-          Novels
-        </button>
-
-        <div style={{ flexGrow: 1 }} />
-
-        <button className="btn btn-danger" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
       <Container
+        fluid
         className="p-5 flex-grow-1"
         style={{
           background: "linear-gradient(135deg, #e6f2ff, #ffffff)",
@@ -185,17 +158,15 @@ export default function NovelManager() {
 
             <tbody>
               {display.map((n, index) => (
-                <tr key={n.id} >
+                <tr key={n.id}>
                   <td className="text-center fw-bold">{index + 1}</td>
                   <td>{n.novelName}</td>
                   <td className="text-center">{n.genres.join(", ")}</td>
+                  <td className="text-center">{n.rate}</td>
 
-                  <td className="text-center d-flex justify-content-center align-items-center gap-2">
-                    {n.rate}
-                  </td>
                   <td>
                     <button
-                      className="btn btn-sm btn-warning m-1 "
+                      className="btn btn-sm btn-warning m-1"
                       onClick={() => navigate(`/manager/update/${n.id}`)}
                     >
                       Update
@@ -222,13 +193,13 @@ export default function NovelManager() {
                 key={i}
                 active={page === i + 1}
                 onClick={() => setPage(i + 1)}
-                className="rounded-pill"
               >
                 {i + 1}
               </Pagination.Item>
             ))}
           </Pagination>
         </Card>
+
         {showDelete && (
           <div
             className="position-fixed top-0 start-0 w-100 h-100"
@@ -252,8 +223,7 @@ export default function NovelManager() {
               </h4>
 
               <p className="text-center">
-                Are you sure you want to delete:
-                <br />
+                Are you sure you want to delete: <br />
                 <b>{selectedNovel?.novelName}</b>
               </p>
 
@@ -270,12 +240,9 @@ export default function NovelManager() {
                   onClick={async () => {
                     await fetch(
                       `http://localhost:9999/novels/${selectedNovel.id}`,
-                      {
-                        method: "DELETE",
-                      }
+                      { method: "DELETE" }
                     );
 
-                    // load lại list
                     const res = await fetch("http://localhost:9999/novels");
                     const data = await res.json();
                     setOrigin(data);

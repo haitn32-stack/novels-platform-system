@@ -14,7 +14,7 @@ const AdminRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.auth);
 
   if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.roles !== "admin")
+  if (currentUser.role !== "admin")
     return (
       <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
     );
@@ -23,13 +23,13 @@ const AdminRoute = ({ children }) => {
 };
 const ManagerRoute = ({ children }) => {
   const { currentUser } = useSelector((state) => state.auth);
-
+  console.log(currentUser);
+  
   if (!currentUser) return <Navigate to="/login" />;
-  if (currentUser.roles !== "manager")
+  if (currentUser.role !== "manager")
     return (
       <div style={{ color: "red" }}>Bạn không có quyền truy cập trang này!</div>
     );
-
   return children;
 };
 
@@ -47,7 +47,6 @@ function App() {
             <AdminRoute>
               <Routes>
                 <Route path="dashboard" element={<Dashboard />} />
-                {/* Thêm route quản lý user ở đây */}
               </Routes>
             </AdminRoute>
           }
