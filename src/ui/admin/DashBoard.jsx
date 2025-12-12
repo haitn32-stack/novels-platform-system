@@ -1,34 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-    Container,
-    Card,
-    Row,
-    Col,
-    Form,
-    FormControl,
-    Table,
-    Pagination,
-    Spinner,
-    Badge,
-    Alert
+    Container, Card, Row, Col, Form, FormControl,
+    Table, Pagination, Spinner, Badge, Alert
 } from "react-bootstrap";
-import { instance } from "../../utils/axios"; // Import axios instance
+import { instance } from "../../utils/axios";
 
-const Dashboard = () => {
-    // 1. State lưu dữ liệu từ API
+const DashBoard = () => {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-
-    // 2. State cho bộ lọc
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState("All");
     const [sort, setSort] = useState("id-asc");
     const [page, setPage] = useState(1);
 
-    const perPage = 5; // Số user mỗi trang
+    const perPage = 5;
 
-    // 3. Gọi API lấy danh sách User khi component mount
+    // Gọi API lấy danh sách User khi component mount
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true);
@@ -44,11 +32,10 @@ const Dashboard = () => {
         fetchUsers();
     }, []);
 
-    // 4. Xử lý Logic: Search -> Filter -> Sort (Dùng useMemo để tối ưu)
     const processedList = useMemo(() => {
         let result = [...users];
 
-        // a. Search (theo userName hoặc email)
+        // Search (theo userName hoặc email)
         if (search) {
             const lowerSearch = search.toLowerCase();
             result = result.filter(
@@ -58,12 +45,12 @@ const Dashboard = () => {
             );
         }
 
-        // b. Filter theo Role
+        // Filter theo Role
         if (roleFilter !== "All") {
             result = result.filter((u) => u.roles === roleFilter);
         }
 
-        // c. Sort
+        // Sort
         switch (sort) {
             case "name-asc":
                 result.sort((a, b) => a.userName.localeCompare(b.userName));
@@ -83,11 +70,9 @@ const Dashboard = () => {
         return result;
     }, [users, search, roleFilter, sort]);
 
-    // 5. Pagination Logic
     const totalPages = Math.ceil(processedList.length / perPage);
     const displayList = processedList.slice((page - 1) * perPage, page * perPage);
 
-    // Hàm render Badge cho Role đẹp hơn
     const renderRoleBadge = (role) => {
         let variant = "secondary";
         if (role === "admin") variant = "danger";
@@ -98,41 +83,36 @@ const Dashboard = () => {
     };
 
     return (
-        <Container
-            fluid // Dùng fluid để rộng hơn chút cho Dashboard
-            className="p-5"
+        <Container fluid className="p-5"
             style={{
                 background: "linear-gradient(135deg, #e6f2ff, #ffffff)",
                 minHeight: "100vh",
             }}
         >
-            {/* --- HEADER & FILTERS --- */}
             <Card
                 className="p-4 mb-4"
                 style={{ borderRadius: 20, boxShadow: "0 5px 15px rgba(0,0,0,0.1)" }}
             >
                 <h2 className="text-center text-primary fw-bold mb-4">
-                    Admin User Management
+                    Admin
                 </h2>
 
                 {error && <Alert variant="danger">{error}</Alert>}
 
                 <Row className="g-3">
-                    {/* Search Box */}
                     <Col md={4}>
                         <FormControl
                             placeholder="Search by username or email..."
                             value={search}
                             onChange={(e) => {
                                 setSearch(e.target.value);
-                                setPage(1); // Reset về trang 1 khi search
+                                setPage(1);
                             }}
                             className="rounded-pill"
                             style={{ borderColor: "#cbe1ff" }}
                         />
                     </Col>
 
-                    {/* Filter Role */}
                     <Col md={4}>
                         <Form.Select
                             className="rounded-pill"
@@ -150,7 +130,6 @@ const Dashboard = () => {
                         </Form.Select>
                     </Col>
 
-                    {/* Sort Options */}
                     <Col md={4}>
                         <Form.Select
                             className="rounded-pill"
@@ -167,7 +146,6 @@ const Dashboard = () => {
                 </Row>
             </Card>
 
-            {/* --- DATA TABLE --- */}
             <Card
                 className="p-3"
                 style={{ borderRadius: 20, boxShadow: "0 5px 15px rgba(0,0,0,0.1)" }}
@@ -194,7 +172,7 @@ const Dashboard = () => {
                                 {displayList.length > 0 ? (
                                     displayList.map((user) => (
                                         <tr
-                                            key={user.id}
+                                            key={user.userId}
                                             style={{ cursor: "pointer", transition: "0.2s" }}
                                             onMouseEnter={(e) =>
                                                 (e.currentTarget.style.background = "#eaf4ff")
@@ -203,11 +181,11 @@ const Dashboard = () => {
                                                 (e.currentTarget.style.background = "white")
                                             }
                                         >
-                                            <td className="text-center fw-bold">{user.id}</td>
+                                            <td className="text-center fw-bold">{user.userId}</td>
                                             <td>{user.userName}</td>
                                             <td>{user.email}</td>
                                             <td className="text-center">
-                                                {renderRoleBadge(user.roles)}
+                                                {renderRoleBadge(user.role)}
                                             </td>
                                             <td className="text-center">
                                                 {/* Placeholder nút bấm */}
@@ -226,7 +204,6 @@ const Dashboard = () => {
                             </tbody>
                         </Table>
 
-                        {/* Pagination */}
                         {totalPages > 0 && (
                             <Pagination className="justify-content-center mt-3">
                                 <Pagination.First onClick={() => setPage(1)} disabled={page === 1} />
@@ -254,4 +231,4 @@ const Dashboard = () => {
     );
 }
 
-export default Dashboard;
+export default DashBoard;
