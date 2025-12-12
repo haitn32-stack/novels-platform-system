@@ -1,55 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux"; // Thêm useSelector
 import Navbar from "./nvarbar";
-
-
+import { authActions } from "../../feature/auth/authSlice"; 
 
 export default function Profile() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    
+    // NGUỒN DỮ LIỆU CHÍNH TỪ REDUX
+    const { currentUser: reduxUser } = useSelector((state) => state.auth); 
 
-    const [currentUser, setCurrentUser] = useState(null);
+    // State form cục bộ cho việc chỉnh sửa
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [avatar, setAvatar] = useState("");
     const [password, setPassword] = useState("");
 
-    const [novels, setNovels] = useState([]);
+    // Dữ liệu người dùng cục bộ (Dùng để xây dựng updated object)
+    const [localUser, setLocalUser] = useState(null); 
     const [favorites, setFavorites] = useState([]);
 
+    const [novels, setNovels] = useState([]);
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState(null);
 
+    // FIX LỖI: Load dữ liệu TỪ REDUX khi component mount hoặc reduxUser thay đổi
     useEffect(() => {
-        loadUserFromStorage();
-        fetchNovels();
-        // eslint-disable-next-line
-    }, []);
-
-    function loadUserFromStorage() {
-        try {
-            const u = JSON.parse(localStorage.getItem("currentUser"));
-            if (u) {
-                setCurrentUser(u);
-                setUsername(u.userName || "");
-                setEmail(u.email || "");
-                setAvatar(u.avatar || "");
-                setPassword(u.pwd || "");
-                const favs = Array.isArray(u.favourites)
-                    ? u.favourites
-                    : Array.isArray(u.favorites)
-                        ? u.favorites
-                        : [];
-                setFavorites(favs);
-            } else {
-                setCurrentUser(null);
-                setFavorites([]);
-            }
-        } catch (e) {
-            console.warn("Invalid currentUser in storage", e);
-            setCurrentUser(null);
-            setFavorites([]);
+        if (reduxUser) {
+            const u = reduxUser;
+            setLocalUser(u);
+            setUsername(u.userName || "");
+            setEmail(u.email || "");
+            setAvatar(u.avatar || "");
+            setPassword(u.pwd || "");
+            const favs = Array.isArray(u.favourites)
+                ? u.favourites
+                : Array.isArray(u.favorites)
+                    ? u.favorites
+                    : [];
+            setFavorites(favs);
+        } else {
+             // Đã đăng xuất: redirect
+             navigate("/login"); 
         }
-    }
+        
+        fetchNovels();
+    }, [reduxUser, navigate]);
 
     async function fetchNovels() {
         try {
@@ -75,8 +72,13 @@ export default function Profile() {
 
     function saveToLocalStorage(updated) {
         try {
-            localStorage.setItem("currentUser", JSON.stringify(updated));
-            setCurrentUser(updated);
+            // ĐỒNG BỘ KEY: Sử dụng "user"
+            localStorage.setItem("user", JSON.stringify(updated)); 
+            setLocalUser(updated);
+            
+            // Cập nhật Redux Store
+            dispatch(authActions.loginSuccess(updated)); 
+
             const favs = Array.isArray(updated.favourites)
                 ? updated.favourites
                 : Array.isArray(updated.favorites)
@@ -84,27 +86,21 @@ export default function Profile() {
                     : [];
             setFavorites(favs);
         } catch (e) {
-            console.warn("Failed to save currentUser to localStorage", e);
+            console.warn("Failed to save user data to localStorage", e);
         }
     }
 
     async function saveToServerIfPossible(updatedUser) {
         const base = "http://localhost:9999";
         try {
-            // Tìm user theo userId (string)
             const res = await fetch(`${base}/users?userId=${updatedUser.userId}`);
             if (!res.ok) return false;
 
             const arr = await res.json();
 
-            // Nếu tìm thấy user trên server
             if (Array.isArray(arr) && arr.length > 0) {
-                const serverRecord = arr[0];
+                const serverId = arr[0].id;
 
-                // serverRecord có id do json-server tạo
-                const serverId = serverRecord.id;
-
-                // PATCH để cập nhật bản ghi
                 const patch = await fetch(`${base}/users/${serverId}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
@@ -133,7 +129,7 @@ export default function Profile() {
         setMsg(null);
 
         const updated = {
-            ...currentUser,
+            ...localUser,
             userName: username,
             email: email,
             avatar: avatar,
@@ -142,10 +138,8 @@ export default function Profile() {
             favorites: favorites
         };
 
-        // always save to localStorage
         saveToLocalStorage(updated);
 
-        // try save to server (best effort)
         try {
             const ok = await saveToServerIfPossible(updated);
             if (ok) {
@@ -162,61 +156,62 @@ export default function Profile() {
         }
     }
 
-    // Logout
     function handleLogout() {
-        localStorage.removeItem("currentUser");
-        setCurrentUser(null);
-        navigate("/login");
+        dispatch(authActions.logout()); 
+        // Vì đây là trang Protected, Redux sẽ tự redirect về /login thông qua Route Guard.
+        // Tuy nhiên, để đảm bảo luồng mạch lạc, ta có thể gọi navigate cuối cùng.
+        navigate("/login"); 
+    }
+    
+    // Hàm reset form, lấy dữ liệu từ Redux User (nguồn ban đầu khi vào trang)
+    function handleReset() {
+         if (reduxUser) {
+            const u = reduxUser; 
+            setUsername(u.userName || "");
+            setEmail(u.email || "");
+            setAvatar(u.avatar || "");
+            setPassword(u.pwd || "");
+         }
     }
 
-    // Remove favorite (local + try server)
     async function removeFavorite(novelId) {
         const next = favorites.filter((f) => f !== novelId);
         setFavorites(next);
 
-        // update localStorage
         try {
-            const cur = JSON.parse(localStorage.getItem("currentUser")) || {};
+            // ĐỒNG BỘ KEY: Sử dụng "user"
+            const cur = JSON.parse(localStorage.getItem("user")) || {};
             cur.favourites = next;
             cur.favorites = next;
-            localStorage.setItem("currentUser", JSON.stringify(cur));
-            setCurrentUser(cur);
+            localStorage.setItem("user", JSON.stringify(cur));
+            setLocalUser(cur);
             setMsg({ type: "success", text: "Removed from favorites." });
         } catch (e) {
             console.warn(e);
             setMsg({ type: "danger", text: "Failed to update local storage." });
         }
 
-        // try to push to server (best-effort)
         try {
-            const updatedUser = { ...(currentUser || {}), favourites: next, favorites: next };
+            const updatedUser = { ...(localUser || {}), favourites: next, favorites: next };
             await saveToServerIfPossible(updatedUser);
         } catch (e) {
-            // ignore server errors
+            
         }
 
         setTimeout(() => setMsg(null), 2000);
     }
 
-    // Uploaded novels filter
     const uploaded = novels.filter(n => {
         const uploader = n.uploadBy || n.uploadedBy || n.authorId || "";
-        return currentUser && (uploader === currentUser.userId || uploader === currentUser.userName);
+        return localUser && (uploader === localUser.userId || uploader === localUser.userName);
     });
 
-    if (!currentUser) {
+    // Dùng localUser để hiển thị (đã được khởi tạo từ reduxUser)
+    if (!localUser) { 
+        // Đây là trang Protected, nếu không có localUser (tức reduxUser đã bị xóa hoặc chưa load)
         return (
             <>
-                <Navbar
-                    query=""
-                    setQuery={() => { }}
-                    showOnlyFavorites={false}
-                    setShowOnlyFavorites={() => { }}
-                    currentUser={currentUser}
-                    computeAvatarSrc={getAvatarSrc}
-                    goToProfile={() => navigate("/profile")}
-                    handleLogout={handleLogout}
-                />
+                <Navbar currentUser={reduxUser} /> 
                 <div className="container py-5">
                     <div className="alert alert-warning">
                         You are not logged in. Please <Link to="/login">Login</Link>.
@@ -228,7 +223,8 @@ export default function Profile() {
 
     return (
         <>
-            <Navbar currentUser={currentUser} />
+            {/* Sử dụng reduxUser cho Navbar để hiển thị trạng thái chính xác */}
+            <Navbar currentUser={reduxUser} />
 
             <div className="container py-4">
                 <h1>User Profile</h1>
@@ -243,17 +239,17 @@ export default function Profile() {
                     <div className="col-md-4">
                         <div className="card p-3 text-center">
                             <img
-                                src={getAvatarSrc(currentUser)}
+                                src={getAvatarSrc(localUser)}
                                 alt="avatar"
                                 style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover" }}
                                 onError={(e) => {
                                     e.currentTarget.onerror = null;
-                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.userName || "U")}&background=0D6EFD&color=fff&size=64`;
+                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(localUser.userName || "U")}&background=0D6EFD&color=fff&size=64`;
                                 }}
                             />
-                            <h5 className="mt-3">{currentUser.userName}</h5>
-                            <p className="text-muted mb-1">{currentUser.email}</p>
-                            <p className="small text-muted">Role: <strong>{currentUser.role || currentUser.roles || "user"}</strong></p>
+                            <h5 className="mt-3">{localUser.userName}</h5>
+                            <p className="text-muted mb-1">{localUser.email}</p>
+                            <p className="small text-muted">Role: <strong>{localUser.role || localUser.roles || "user"}</strong></p>
 
                             <div className="d-grid gap-2 mt-3">
                                 <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
@@ -261,7 +257,6 @@ export default function Profile() {
                             </div>
                         </div>
 
-                        {/* Favorites list */}
                         <div className="card mt-3 p-3">
                             <h6>Favorites ({favorites.length})</h6>
                             {favorites.length === 0 && <p className="text-muted">No favorite novels yet.</p>}
@@ -318,12 +313,11 @@ export default function Profile() {
                                     <button className="btn btn-success" type="submit" disabled={saving}>
                                         {saving ? "Saving..." : "Save changes"}
                                     </button>
-                                    <button className="btn btn-secondary" type="button" onClick={loadUserFromStorage}>Reset</button>
+                                    <button className="btn btn-secondary" type="button" onClick={handleReset}>Reset</button>
                                 </div>
                             </form>
                         </div>
 
-                        {/* Uploaded novels */}
                         <div className="card p-3 mt-3">
                             <h5>Novels you uploaded ({uploaded.length})</h5>
                             {uploaded.length === 0 && <p className="text-muted">You haven't uploaded any novels.</p>}
@@ -347,7 +341,6 @@ export default function Profile() {
                                 ))}
                             </ul>
                         </div>
-
                     </div>
                 </div>
             </div>
