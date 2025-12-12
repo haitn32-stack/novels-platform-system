@@ -1,27 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux"; // THÊM REDUX
 import Navbar from "./nvarbar";
+import { authActions } from "../../feature/auth/authSlice"; // Sửa đường dẫn thực tế
 
 export default function NovelDetail() {
-    const { novelId } = useParams(); // e.g. "n002"
+    const { novelId } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch(); // Dùng cho Logout
+
+    // SỬ DỤNG REDUX CHO TRẠNG THÁI NGƯỜI DÙNG
+    const { currentUser: reduxUser } = useSelector((state) => state.auth);
 
     const [novel, setNovel] = useState(null);
     const [chapters, setChapters] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentUser, setCurrentUser] = useState(null);
+
+    // Favorites: Được tính toán từ Redux User, nếu có
     const [favorites, setFavorites] = useState([]);
 
+    // Cảnh báo: currentUser, favorites ban đầu được thiết lập từ state cục bộ, 
+    // nhưng giờ ta dùng Redux. Xóa logic khởi tạo Local Storage trong useEffect.
+
     useEffect(() => {
-        // load currentUser (if any)
-        try {
-            const saved = JSON.parse(localStorage.getItem("currentUser"));
-            if (saved) {
-                setCurrentUser(saved);
-                const favs = saved.favourites || saved.favorites || [];
-                setFavorites(favs);
-            }
-        } catch (e) { /* ignore */ }
+        // Cập nhật Favorites từ Redux User
+        if (reduxUser) {
+            const favs = reduxUser.favourites || reduxUser.favorites || [];
+            setFavorites(favs);
+        } else {
+            setFavorites([]);
+        }
 
         // fetch novels + chapters from json-server
         Promise.all([
@@ -39,10 +47,10 @@ export default function NovelDetail() {
                 console.error("Fetch error", err);
             })
             .finally(() => setLoading(false));
-    }, [novelId]);
+    }, [novelId, reduxUser]); // Thêm reduxUser vào dependency array
 
     function toggleFavorite() {
-        if (!currentUser) {
+        if (!reduxUser) {
             localStorage.setItem("afterLoginFavorite", JSON.stringify(novelId));
             navigate("/login");
             return;
@@ -52,9 +60,12 @@ export default function NovelDetail() {
             const exists = prev.includes(novelId);
             const next = exists ? prev.filter(x => x !== novelId) : [...prev, novelId];
 
-            const updatedUser = { ...currentUser, favourites: next, favorites: next };
-            localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-            setCurrentUser(updatedUser);
+            // SỬ DỤNG KEY "user" ĐỒNG BỘ
+            const updatedUser = { ...reduxUser, favourites: next, favorites: next };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            // Cập nhật Redux store (để đồng bộ Navbar)
+            dispatch(authActions.loginSuccess(updatedUser));
 
             return next;
         });
@@ -64,27 +75,18 @@ export default function NovelDetail() {
     if (!novel) return <div className="p-4 text-danger">Not Found!</div>;
 
     const isFav = favorites.includes(novelId);
-    function computeAvatarSrc(user) {
-        if (!user) return null;
-        const raw = user.avatar || user.img || user.avatarUrl || "";
-        const uiAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || "User")}&background=0D6EFD&color=fff&size=64`;
-        if (!raw) return uiAvatar;
-        if (/^https?:\/\//i.test(raw)) return raw;
-        if (raw.startsWith("/")) return raw;
-        const publicBase = process.env.PUBLIC_URL || "";
-        return `${publicBase}/${raw}`.replace(/([^:]\/)\/+/g, "$1");
-    }
 
+    // Hàm này không cần nữa vì Navbar tự xử lý avatar, nhưng tôi giữ lại goToProfile và handleLogout.
     function goToProfile() {
         navigate("/profile");
     }
 
     function handleLogout() {
-        localStorage.removeItem("currentUser");
-        setCurrentUser(null);
-        setFavorites([]);
-        navigate("/");
+        dispatch(authActions.logout());
+        // Sử dụng navigate để loại bỏ cảnh báo ESLint
+        navigate("/login");
     }
+
     return (
         <>
             <Navbar
@@ -92,8 +94,7 @@ export default function NovelDetail() {
                 setQuery={() => { }}
                 showOnlyFavorites={false}
                 setShowOnlyFavorites={() => { }}
-                currentUser={currentUser}
-                computeAvatarSrc={computeAvatarSrc}
+                currentUser={reduxUser} // TRUYỀN REDUX USER
                 goToProfile={goToProfile}
                 handleLogout={handleLogout}
             />
