@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Form, Button, Image } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
-import SideBar from "./sidebar";
+import SideBar from "./SideBarrr";
 
 export default function UpdateNovel() {
   const { id } = useParams();
@@ -56,9 +56,18 @@ export default function UpdateNovel() {
   console.log(genres);
 
   return (
-    <div>
-      {/* <SideBar/> */}
-      <Container className="p-4">
+    <div className="d-flex" style={{ minHeight: "100vh" }}>
+      <SideBar
+        onNavigate={(page) => navigate(`/manager/${page}`)}
+        currentPage="dashboard"
+      />
+      <Container
+        fluid
+        className="p-5 flex-grow-1"
+        style={{
+          background: "linear-gradient(135deg, #e6f2ff, #ffffff)",
+        }}
+      >
         <h2 className="fw-bold text-primary">Update Novel</h2>
 
         <Form onSubmit={handleSubmit} className="mt-3">
