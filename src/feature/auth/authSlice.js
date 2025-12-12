@@ -29,7 +29,7 @@ const authSlice = createSlice({
             state.currentUser = null;
             state.error = null;
             localStorage.removeItem('user');
-            localStorage.removeItem('token'); // Thêm xóa token ở đây
+            localStorage.removeItem('token'); 
         }
     },
 });
