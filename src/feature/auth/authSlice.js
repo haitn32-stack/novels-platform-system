@@ -8,13 +8,11 @@ const authSlice = createSlice({
         error: null,
     },
     reducers: {
-        // Call API -> Bật loading, xóa lỗi cũ
         loginStart: (state) => {
             state.isLoading = true;
             state.error = null;
         },
 
-        // Success -> store.js user, tắt loading
         loginSuccess: (state, action) => {
             state.isLoading = false;
             state.currentUser = action.payload;
@@ -22,26 +20,22 @@ const authSlice = createSlice({
             localStorage.setItem('user', JSON.stringify(action.payload));
         },
 
-        // Fail -> Lưu lỗi, tắt loading
         loginFailed: (state, action) => {
             state.isLoading = false;
             state.error = action.payload;
         },
 
-        // Logout
         logout: (state) => {
             state.currentUser = null;
             state.error = null;
             localStorage.removeItem('user');
+            localStorage.removeItem('token'); // Thêm xóa token ở đây
         }
     },
 });
 
-// Export actions
 export const authActions = authSlice.actions;
 
-// Export selector
 export const selectAuth = (state) => state.auth;
 
-// Export reducer
 export default authSlice.reducer;
