@@ -1,33 +1,34 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Link, useNavigate, Outlet } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "./nvarbar";
-
-import { Outlet } from "react-router-dom";
+import { authActions } from "../../feature/auth/authSlice";
 export default function HomepageUser() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { currentUser } = useSelector((state) => state.auth);
 
-  // dữ liệu chính
   const [novels, setNovels] = useState([]);
   const [chapters, setChapters] = useState([]);
 
-  // trạng thái UI
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // user + favourites
-  const [currentUser, setCurrentUser] = useState(null);
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(
+    Array.isArray(currentUser?.favourites)
+      ? currentUser.favourites
+      : Array.isArray(currentUser?.favorites)
+        ? currentUser.favorites
+        : []
+  );
 
-  // filters / search
   const [query, setQuery] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
-  // helpers fetch (only novels + chapters)
   const fetchNovels = () => fetch("http://localhost:9999/novels").then(r => r.json());
   const fetchChapters = () => fetch("http://localhost:9999/chapters").then(r => r.json());
 
-  // --- initial load ---
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -36,8 +37,6 @@ export default function HomepageUser() {
       .then(([novelsData, chaptersData]) => {
         setNovels(novelsData || []);
         setChapters(chaptersData || []);
-        // read currentUser from localStorage at mount
-        readCurrentUserFromStorage();
       })
       .catch(err => {
         console.error("Fetch error", err);
@@ -46,61 +45,27 @@ export default function HomepageUser() {
       .finally(() => setLoading(false));
   }, []);
 
-  function readCurrentUserFromStorage() {
-    try {
-      const savedUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (savedUser) {
-        setCurrentUser(savedUser);
-        const favs = Array.isArray(savedUser.favourites)
-          ? savedUser.favourites
-          : Array.isArray(savedUser.favorites)
-            ? savedUser.favorites
-            : [];
-        setFavorites(favs);
-      } else {
-        setCurrentUser(null);
-        setFavorites([]);
-      }
-    } catch (e) {
-      console.warn("Invalid currentUser in localStorage", e);
-      setCurrentUser(null);
-      setFavorites([]);
-    }
-  }
-
-  // --- listen to localStorage changes (other tab) and focus/visibility changes ---
   useEffect(() => {
-    function onStorage(e) {
-      if (e.key === "currentUser") readCurrentUserFromStorage();
-    }
-    function onVisibility() {
-      if (!document.hidden) readCurrentUserFromStorage();
-    }
-    window.addEventListener("storage", onStorage);
-    document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("focus", readCurrentUserFromStorage);
+    setFavorites(
+      Array.isArray(currentUser?.favourites)
+        ? currentUser.favourites
+        : Array.isArray(currentUser?.favorites)
+          ? currentUser.favorites
+          : []
+    );
+  }, [currentUser]);
 
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("focus", readCurrentUserFromStorage);
-    };
-  }, []);
-
-  // danh sách genres
   const allGenres = useMemo(() => {
     const s = new Set();
     novels.forEach(n => n.genres?.forEach(g => s.add(g)));
     return ["All", ...s];
   }, [novels]);
 
-  // helper lấy id chuẩn của novel
-  function getNovelId(novel) {
+  const getNovelId = useCallback((novel) => {
     return novel?.id ?? novel?.novelId ?? null;
-  }
+  }, []);
 
-  // toggle favorite: chỉ cho phép khi đã đăng nhập
-  function toggleFavorite(novel) {
+  const toggleFavorite = (novel) => {
     const id = getNovelId(novel);
     if (!id) return;
 
@@ -114,24 +79,19 @@ export default function HomepageUser() {
       const exists = prev.includes(id);
       const next = exists ? prev.filter(x => x !== id) : [...prev, id];
 
-      // cập nhật currentUser trong localStorage (mock)
       try {
-        const cur = JSON.parse(localStorage.getItem("currentUser")) || {};
+        const cur = JSON.parse(localStorage.getItem("user")) || {};
         cur.favourites = next;
         cur.favorites = next;
-        localStorage.setItem("currentUser", JSON.stringify(cur));
-        setCurrentUser(cur);
+        localStorage.setItem("user", JSON.stringify(cur));
       } catch (e) {
-        console.warn("Cannot update currentUser in localStorage", e);
+        console.warn("Cannot update user data in localStorage", e);
       }
-
-      // TODO: nếu có API thực, gọi POST/DELETE ở đây
 
       return next;
     });
-  }
+  };
 
-  // Filter novels
   const filteredNovels = useMemo(() => {
     return novels
       .filter(n => {
@@ -148,9 +108,8 @@ export default function HomepageUser() {
         return matchQuery && matchGenre;
       })
       .sort((a, b) => (b.rate || 0) - (a.rate || 0));
-  }, [novels, query, selectedGenre, favorites, showOnlyFavorites]);
+  }, [novels, query, selectedGenre, favorites, showOnlyFavorites, getNovelId]);
 
-  // chapter count & views helpers
   function getChapterCount(novel) {
     if (novel.totalChapters != null) return novel.totalChapters;
     const id = getNovelId(novel);
@@ -164,58 +123,35 @@ export default function HomepageUser() {
     return related.reduce((s, c) => s + (Number(c.views) || 0), 0);
   }
 
-  // handlers for dropdown actions
   function handleLogout() {
-    localStorage.removeItem("currentUser");
-    setCurrentUser(null);
-    setFavorites([]);
-    navigate("/");
+    dispatch(authActions.logout());
+    navigate("/login");
   }
 
   function goToProfile() {
     navigate("/profile");
   }
 
-  // compute avatar src from currentUser.avatar (supports multiple cases)
-  function computeAvatarSrc(user) {
-    if (!user) return null;
-    const raw = user.avatar || user.img || user.avatarUrl || "";
-    const uiAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || "User")}&background=0D6EFD&color=fff&size=64`;
+  // Đã XÓA HÀM computeAvatarSrc
 
-    if (!raw) return uiAvatar;
-    if (/^https?:\/\//i.test(raw)) return raw;
-    if (raw.startsWith("/")) return raw;
-
-    const apiBase = process.env.REACT_APP_API_URL || "";
-    if (apiBase) {
-      return `${apiBase.replace(/\/$/, "")}/${raw.replace(/^\//, "")}`;
-    }
-    const publicBase = process.env.PUBLIC_URL || "";
-    return `${publicBase}/${raw}`.replace(/([^:]\/)\/+/g, "$1");
-  }
-
-  // UI states
-  if (loading) return <div className="p-10">Đang tải dữ liệu...</div>;
-  if (error) return <div className="p-10 text-danger">Lỗi: {error}</div>;
+  if (loading) return <div className="p-10">Loading data...</div>;
+  if (error) return <div className="p-10 text-danger">Error: {error}</div>;
 
   return (
     <>
-
       <Navbar
         query={query}
         setQuery={setQuery}
         showOnlyFavorites={showOnlyFavorites}
         setShowOnlyFavorites={setShowOnlyFavorites}
         currentUser={currentUser}
-        computeAvatarSrc={computeAvatarSrc}
         goToProfile={goToProfile}
         handleLogout={handleLogout}
       />
 
-      {/* Content */}
       <div className="container p-4">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2 className="m-0">List Novel</h2>
+          <h2 className="m-0">Novel List</h2>
 
           <div>
             <select
@@ -255,7 +191,7 @@ export default function HomepageUser() {
                       onClick={() => toggleFavorite(novel)}
                       className={`btn btn-sm ${isFav ? "btn-warning" : "btn-outline-light"}`}
                       style={{ position: "absolute", right: 8, top: 8 }}
-                      title={isFav ? "Bỏ yêu thích" : "Thêm yêu thích"}
+                      title={isFav ? "Remove from favorites" : "Add to favorites"}
                     >
                       {isFav ? "★" : "☆"}
                     </button>
@@ -285,7 +221,7 @@ export default function HomepageUser() {
 
           {filteredNovels.length === 0 && (
             <div className="col-12">
-              <div className="alert alert-info">Không tìm thấy truyện nào.</div>
+              <div className="alert alert-info">No novels found.</div>
             </div>
           )}
         </div>
