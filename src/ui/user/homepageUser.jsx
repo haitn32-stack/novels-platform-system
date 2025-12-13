@@ -6,7 +6,7 @@ import { authActions } from "../../feature/auth/authSlice";
 
 const NovelCard = ({ novel, id, chapterCount, views, isFav, toggleFavorite }) => {
     const displayGenres = novel.genres ? novel.genres.slice(0, 2).join(', ') : 'Unknown';
-    
+
     return (
         <div className="card h-100 shadow-sm" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', transition: 'transform 0.2s', overflow: 'hidden' }}>
             <div style={{ position: "relative" }}>
@@ -40,7 +40,7 @@ const NovelCard = ({ novel, id, chapterCount, views, isFav, toggleFavorite }) =>
                 <p className="card-text text-muted" style={{ fontSize: 13, flexGrow: 1, marginBottom: '10px' }}>
                     {novel.description?.length > 70 ? `${novel.description.substring(0, 70)}...` : novel.description}
                 </p>
-                
+
                 <div className="mb-2" style={{ fontSize: 13, borderTop: '1px dotted #eee', paddingTop: '10px' }}>
                     <p className="m-0 text-secondary text-truncate">
                         <small>{displayGenres}</small>
@@ -48,7 +48,7 @@ const NovelCard = ({ novel, id, chapterCount, views, isFav, toggleFavorite }) =>
                     <span className="me-3 text-primary">📚 {chapterCount} chap</span>
                     <span className="text-secondary">👤 {novel.author || "Unknown"}</span>
                 </div>
-                
+
                 <Link className="btn btn-sm btn-primary mt-2" to={`/novel/${id ?? novel.novelId}`}>
                     Read Detail
                 </Link>
@@ -74,12 +74,12 @@ const RankingSection = ({ novels, getNovelId, getChapterCount, limit = 6, title 
                 {topNovels.map((novel, index) => {
                     const id = getNovelId(novel);
                     const chapterCount = getChapterCount(novel);
-                    
+
                     return (
                         <div key={id} className="col-12">
-                            <Link to={`/novel/${id}`} className="d-flex align-items-center p-2 text-decoration-none text-dark" 
-                                style={{ 
-                                    borderBottom: '1px dotted #eee', 
+                            <Link to={`/novel/${id}`} className="d-flex align-items-center p-2 text-decoration-none text-dark"
+                                style={{
+                                    borderBottom: '1px dotted #eee',
                                     transition: 'background-color 0.2s',
                                     backgroundColor: index < 3 ? '#fff5f5' : 'transparent'
                                 }}
@@ -121,10 +121,10 @@ export default function HomepageUser() {
     const [error, setError] = useState(null);
 
     const [favorites, setFavorites] = useState(
-        Array.isArray(currentUser?.favourites) 
-            ? currentUser.favourites 
-            : Array.isArray(currentUser?.favorites) 
-                ? currentUser.favorites 
+        Array.isArray(currentUser?.favourites)
+            ? currentUser.favourites
+            : Array.isArray(currentUser?.favorites)
+                ? currentUser.favorites
                 : []
     );
 
@@ -153,10 +153,10 @@ export default function HomepageUser() {
 
     useEffect(() => {
         setFavorites(
-            Array.isArray(currentUser?.favourites) 
-                ? currentUser.favourites 
-                : Array.isArray(currentUser?.favorites) 
-                    ? currentUser.favorites 
+            Array.isArray(currentUser?.favourites)
+                ? currentUser.favourites
+                : Array.isArray(currentUser?.favorites)
+                    ? currentUser.favorites
                     : []
         );
     }, [currentUser]);
@@ -186,10 +186,12 @@ export default function HomepageUser() {
             const next = exists ? prev.filter(x => x !== id) : [...prev, id];
 
             try {
-                const cur = JSON.parse(localStorage.getItem("user")) || {};
-                cur.favourites = next;
-                cur.favorites = next;
-                localStorage.setItem("user", JSON.stringify(cur));
+                const updatedUser = { ...currentUser, favourites: next, favorites: next };
+
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+
+                dispatch(authActions.loginSuccess(updatedUser));
+
             } catch (e) {
                 console.warn("Cannot update user data in localStorage", e);
             }
@@ -238,10 +240,31 @@ export default function HomepageUser() {
         navigate("/profile");
     }
 
+    const featuredNovel = useMemo(() => {
+        const novelsWithStats = novels.map(n => ({
+            ...n,
+            views: getViews(n),
+            chapterCount: getChapterCount(n)
+        }));
+
+        const qualifiedNovels = novelsWithStats.filter(n => n.views > 0 && n.chapterCount > 0);
+
+        if (qualifiedNovels.length > 0) {
+            return qualifiedNovels.sort((a, b) => {
+                if (b.rate !== a.rate) {
+                    return (b.rate || 0) - (a.rate || 0);
+                }
+                return (b.views || 0) - (a.views || 0);
+            })[0];
+        }
+
+        return null;
+        // eslint-disable-next-line
+    }, [novels, chapters]);
+
     if (loading) return <div className="p-5 text-center">Loading data...</div>;
     if (error) return <div className="p-5 text-danger text-center">Error: {error}</div>;
 
-    const featuredNovel = novels.sort((a, b) => (b.rate || 0) - (a.rate || 0))[0];
 
     return (
         <>
@@ -256,14 +279,14 @@ export default function HomepageUser() {
             />
 
             <div className="container py-4">
-                
+
                 {featuredNovel && (
-                    <div className="p-5 mb-4 text-white rounded shadow-lg" 
-                        style={{ 
-                            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${featuredNovel.imgLink || 'https://via.placeholder.com/1200x300?text=Featured+Novel'})`, 
-                            backgroundSize: 'cover', 
+                    <div className="p-5 mb-4 text-white rounded shadow-lg"
+                        style={{
+                            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${featuredNovel.imgLink || 'https://via.placeholder.com/1200x300?text=Featured+Novel'})`,
+                            backgroundSize: 'cover',
                             backgroundPosition: 'center',
-                            borderRadius: '12px' 
+                            borderRadius: '12px'
                         }}>
                         <h1 className="display-5 fw-bold">{featuredNovel.novelName}</h1>
                         <p className="lead">{featuredNovel.description?.substring(0, 150)}...</p>
@@ -273,17 +296,17 @@ export default function HomepageUser() {
 
 
                 <div className="row g-4">
-                    
+
                     <div className="col-lg-3 order-lg-last">
-                        <RankingSection 
+                        <RankingSection
                             novels={novels}
                             getNovelId={getNovelId}
                             getChapterCount={getChapterCount}
                             title="Top Rated Novels"
                             limit={6}
                         />
-                        
-                        <RankingSection 
+
+                        <RankingSection
                             novels={novels}
                             getNovelId={getNovelId}
                             getChapterCount={getChapterCount}
@@ -310,7 +333,7 @@ export default function HomepageUser() {
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div className="row g-4">
                             {filteredNovels.map(novel => {
                                 const id = getNovelId(novel);
@@ -320,7 +343,7 @@ export default function HomepageUser() {
 
                                 return (
                                     <div key={id ?? novel.novelId} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                                        <NovelCard 
+                                        <NovelCard
                                             novel={novel}
                                             id={id}
                                             chapterCount={chapterCount}
