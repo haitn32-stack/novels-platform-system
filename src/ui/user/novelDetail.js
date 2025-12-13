@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import Navbar from "./nvarbar";
+import { authActions } from "../../feature/auth/authSlice";
+
+const API_URL = "http://localhost:9999";
 
 export default function NovelDetail() {
-    const { novelId } = useParams(); // e.g. "n002"
+    const { novelId } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const { currentUser: reduxUser } = useSelector((state) => state.auth);
 
     const [novel, setNovel] = useState(null);
     const [chapters, setChapters] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentUser, setCurrentUser] = useState(null);
+
     const [favorites, setFavorites] = useState([]);
 
     useEffect(() => {
-        // load currentUser (if any)
-        try {
-            const saved = JSON.parse(localStorage.getItem("currentUser"));
-            if (saved) {
-                setCurrentUser(saved);
-                const favs = saved.favourites || saved.favorites || [];
-                setFavorites(favs);
-            }
-        } catch (e) { /* ignore */ }
+        if (reduxUser) {
+            const favs = reduxUser.favourites || reduxUser.favorites || [];
+            setFavorites(favs);
+        } else {
+            setFavorites([]);
+        }
 
-        // fetch novels + chapters from json-server
         Promise.all([
-            fetch("http://localhost:9999/novels").then(r => r.json()),
-            fetch("http://localhost:9999/chapters").then(r => r.json())
+            fetch(`${API_URL}/novels`).then(r => r.json()),
+            fetch(`${API_URL}/chapters`).then(r => r.json())
         ])
             .then(([novelList, chapterList]) => {
                 const n = novelList.find(v => String(v.novelId) === String(novelId) || String(v.id) === String(novelId));
@@ -39,10 +42,10 @@ export default function NovelDetail() {
                 console.error("Fetch error", err);
             })
             .finally(() => setLoading(false));
-    }, [novelId]);
+    }, [novelId, reduxUser]);
 
     function toggleFavorite() {
-        if (!currentUser) {
+        if (!reduxUser) {
             localStorage.setItem("afterLoginFavorite", JSON.stringify(novelId));
             navigate("/login");
             return;
@@ -52,9 +55,10 @@ export default function NovelDetail() {
             const exists = prev.includes(novelId);
             const next = exists ? prev.filter(x => x !== novelId) : [...prev, novelId];
 
-            const updatedUser = { ...currentUser, favourites: next, favorites: next };
-            localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-            setCurrentUser(updatedUser);
+            const updatedUser = { ...reduxUser, favourites: next, favorites: next };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            dispatch(authActions.loginSuccess(updatedUser));
 
             return next;
         });
@@ -64,36 +68,20 @@ export default function NovelDetail() {
     if (!novel) return <div className="p-4 text-danger">Not Found!</div>;
 
     const isFav = favorites.includes(novelId);
-    function computeAvatarSrc(user) {
-        if (!user) return null;
-        const raw = user.avatar || user.img || user.avatarUrl || "";
-        const uiAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName || "User")}&background=0D6EFD&color=fff&size=64`;
-        if (!raw) return uiAvatar;
-        if (/^https?:\/\//i.test(raw)) return raw;
-        if (raw.startsWith("/")) return raw;
-        const publicBase = process.env.PUBLIC_URL || "";
-        return `${publicBase}/${raw}`.replace(/([^:]\/)\/+/g, "$1");
-    }
 
     function goToProfile() {
         navigate("/profile");
     }
 
     function handleLogout() {
-        localStorage.removeItem("currentUser");
-        setCurrentUser(null);
-        setFavorites([]);
-        navigate("/");
+        dispatch(authActions.logout());
+        navigate("/login");
     }
+
     return (
         <>
             <Navbar
-                query=""
-                setQuery={() => { }}
-                showOnlyFavorites={false}
-                setShowOnlyFavorites={() => { }}
-                currentUser={currentUser}
-                computeAvatarSrc={computeAvatarSrc}
+                currentUser={reduxUser}
                 goToProfile={goToProfile}
                 handleLogout={handleLogout}
             />
@@ -136,10 +124,12 @@ export default function NovelDetail() {
                     <p className="text-muted">No chapters yet.</p>
                 ) : (
                     <ul className="list-group mt-3">
-                        {chapters.map(ch => (
-                            <li key={ch.chapterId} className="list-group-item d-flex justify-content-between align-items-center">
+                        {chapters
+                            .sort((a, b) => a.chapterNumber - b.chapterNumber)
+                            .map(ch => (
+                            <li key={ch.id} className="list-group-item d-flex justify-content-between align-items-center">
                                 <span><strong>Chapter {ch.chapterNumber}:</strong> {ch.title}</span>
-                                <Link className="btn btn-primary btn-sm" to={`/chapter/${ch.chapterId}`}>Read</Link>
+                                <Link className="btn btn-primary btn-sm" to={`/chapter/${ch.id}`}>Read</Link>
                             </li>
                         ))}
                     </ul>

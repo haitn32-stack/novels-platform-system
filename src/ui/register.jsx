@@ -7,7 +7,6 @@ import { instance } from '../utils/axios';
 const Register = ({ title }) => {
     const navigate = useNavigate();
 
-    // Local state cho form
     const [formData, setFormData] = useState({
         userName: '',
         email: '',
@@ -18,48 +17,48 @@ const Register = ({ title }) => {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
 
-        // 1. Validate cơ bản
         if (!formData.userName || !formData.pwd || !formData.email) {
-            setError('Vui lòng điền đầy đủ thông tin');
+            setError('Please fill in all required fields.');
             return;
         }
         if (formData.pwd !== formData.confirmPwd) {
-            setError('Mật khẩu xác nhận không khớp');
+            setError('The confirmation password does not match.');
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // 2. Check tồn tại (Gọi API)
             const checkRes = await instance.get('users', {
                 params: { userName: formData.userName }
             });
 
             if (checkRes.data.length > 0) {
-                setError('Tên đăng nhập đã tồn tại!');
+                setError('Username already exists!');
                 setIsLoading(false);
                 return;
             }
 
-            // 3. Tạo user mới (Mặc định role reader)
             await instance.post('users', {
                 userName: formData.userName,
                 email: formData.email,
                 pwd: formData.pwd,
-                roles: 'reader' // Role mặc định
+                roles: 'reader'
             });
 
-            // 4. Thành công -> Chuyển về login
-            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            alert('Registration successful! Please log in.');
             navigate('/login');
 
         } catch (err) {
-            setError('Có lỗi xảy ra: ' + err.message);
+            setError('An error occurred: ' + err.message);
         } finally {
             setIsLoading(false);
         }
@@ -80,9 +79,10 @@ const Register = ({ title }) => {
                             <Form.Label>Username</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Chọn tên đăng nhập"
+                                name="userName"
+                                placeholder="Choose a username"
                                 value={formData.userName}
-                                onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                                onChange={handleChange}
                             />
                         </Form.Group>
 
@@ -90,9 +90,10 @@ const Register = ({ title }) => {
                             <Form.Label>Email</Form.Label>
                             <Form.Control
                                 type="email"
-                                placeholder="nhap@email.com"
+                                name="email"
+                                placeholder="enter@email.com"
                                 value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                onChange={handleChange}
                             />
                         </Form.Group>
 
@@ -100,9 +101,10 @@ const Register = ({ title }) => {
                             <Form.Label>Password</Form.Label>
                             <Form.Control
                                 type="password"
-                                placeholder="Mật khẩu"
+                                name="pwd"
+                                placeholder="Password"
                                 value={formData.pwd}
-                                onChange={(e) => setFormData({ ...formData, pwd: e.target.value })}
+                                onChange={handleChange}
                             />
                         </Form.Group>
 
@@ -110,36 +112,35 @@ const Register = ({ title }) => {
                             <Form.Label>Confirm Password</Form.Label>
                             <Form.Control
                                 type="password"
-                                placeholder="Nhập lại mật khẩu"
+                                name="confirmPwd"
+                                placeholder="Re-enter password"
                                 value={formData.confirmPwd}
-                                onChange={(e) => setFormData({ ...formData, confirmPwd: e.target.value })}
+                                onChange={handleChange}
                             />
                         </Form.Group>
 
                         <div className="d-grid gap-2">
                             <Button variant="success" type="submit" disabled={isLoading}>
-                                {isLoading ? <Spinner size="sm" animation="border" /> : 'Đăng ký ngay'}
+                                {isLoading ? <Spinner size="sm" animation="border" /> : 'Register Now'}
                             </Button>
                         </div>
                     </Form>
                 </Card.Body>
 
-                {/* Footer chuyển hướng sang Login */}
                 <Card.Footer className="text-center">
-                    Đã có tài khoản? <Link to="/login">Đăng nhập tại đây</Link>
+                    Already have an account? <Link to="/login">Log in here</Link>
                 </Card.Footer>
             </Card>
         </Container>
     );
 };
 
-// Sử dụng PropTypes để validate props đầu vào
 Register.propTypes = {
     title: PropTypes.string
 };
 
 Register.defaultProps = {
-    title: 'Đăng ký tài khoản'
+    title: 'Register Account'
 };
 
 export default Register;

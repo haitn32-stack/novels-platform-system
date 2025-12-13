@@ -3,230 +3,368 @@ import { Link, useNavigate, Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "./nvarbar";
 import { authActions } from "../../feature/auth/authSlice";
-export default function HomepageUser() {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.auth);
 
-  const [novels, setNovels] = useState([]);
-  const [chapters, setChapters] = useState([]);
+const NovelCard = ({ novel, id, chapterCount, views, isFav, toggleFavorite }) => {
+    const displayGenres = novel.genres ? novel.genres.slice(0, 2).join(', ') : 'Unknown';
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    return (
+        <div className="card h-100 shadow-sm" style={{ border: '1px solid #e0e0e0', borderRadius: '10px', transition: 'transform 0.2s', overflow: 'hidden' }}>
+            <div style={{ position: "relative" }}>
+                <img
+                    src={novel.imgLink || novel.img || "https://via.placeholder.com/300x400?text=No+Image"}
+                    className="card-img-top"
+                    alt={novel.novelName}
+                    style={{ height: 250, objectFit: "cover", borderBottom: '1px solid #eee' }}
+                />
+                <div style={{ position: "absolute", left: 8, top: 8, display: "flex", gap: 8 }}>
+                    <span className="badge bg-danger" title="Rating">⭐ {novel.rate ?? 0}</span>
+                    <span className="badge bg-dark" title="Views">👁️ {views}</span>
+                </div>
 
-  const [favorites, setFavorites] = useState(
-    Array.isArray(currentUser?.favourites)
-      ? currentUser.favourites
-      : Array.isArray(currentUser?.favorites)
-        ? currentUser.favorites
-        : []
-  );
+                <button
+                    onClick={() => toggleFavorite(novel)}
+                    className={`btn btn-sm ${isFav ? "btn-warning" : "btn-outline-light"}`}
+                    style={{ position: "absolute", right: 8, top: 8, border: 'none', opacity: 0.9 }}
+                    title={isFav ? "Remove from favorites" : "Add to favorites"}
+                >
+                    {isFav ? "★" : "☆"}
+                </button>
+            </div>
 
-  const [query, setQuery] = useState("");
-  const [selectedGenre, setSelectedGenre] = useState("All");
-  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+            <div className="card-body d-flex flex-column" style={{ padding: '15px' }}>
+                <h5 className="card-title" style={{ minHeight: 48, fontSize: '1.1rem', fontWeight: 'bold' }}>
+                    <Link to={`/novel/${id ?? novel.novelId}`} style={{ textDecoration: 'none', color: '#333' }}>
+                        {novel.novelName}
+                    </Link>
+                </h5>
+                <p className="card-text text-muted" style={{ fontSize: 13, flexGrow: 1, marginBottom: '10px' }}>
+                    {novel.description?.length > 70 ? `${novel.description.substring(0, 70)}...` : novel.description}
+                </p>
 
-  const fetchNovels = () => fetch("http://localhost:9999/novels").then(r => r.json());
-  const fetchChapters = () => fetch("http://localhost:9999/chapters").then(r => r.json());
+                <div className="mb-2" style={{ fontSize: 13, borderTop: '1px dotted #eee', paddingTop: '10px' }}>
+                    <p className="m-0 text-secondary text-truncate">
+                        <small>{displayGenres}</small>
+                    </p>
+                    <span className="me-3 text-primary">📚 {chapterCount} chap</span>
+                    <span className="text-secondary">👤 {novel.author || "Unknown"}</span>
+                </div>
 
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    Promise.all([fetchNovels(), fetchChapters()])
-      .then(([novelsData, chaptersData]) => {
-        setNovels(novelsData || []);
-        setChapters(chaptersData || []);
-      })
-      .catch(err => {
-        console.error("Fetch error", err);
-        setError(err.message || "Fetch error");
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    setFavorites(
-      Array.isArray(currentUser?.favourites)
-        ? currentUser.favourites
-        : Array.isArray(currentUser?.favorites)
-          ? currentUser.favorites
-          : []
+                <Link className="btn btn-sm btn-primary mt-2" to={`/novel/${id ?? novel.novelId}`}>
+                    Read Detail
+                </Link>
+            </div>
+        </div>
     );
-  }, [currentUser]);
+};
 
-  const allGenres = useMemo(() => {
-    const s = new Set();
-    novels.forEach(n => n.genres?.forEach(g => s.add(g)));
-    return ["All", ...s];
-  }, [novels]);
+const RankingSection = ({ novels, getNovelId, getChapterCount, limit = 6, title }) => {
+    const topNovels = novels
+        .filter(n => n.rate > 0)
+        .sort((a, b) => (b.rate || 0) - (a.rate || 0))
+        .slice(0, limit);
 
-  const getNovelId = useCallback((novel) => {
-    return novel?.id ?? novel?.novelId ?? null;
-  }, []);
+    if (topNovels.length === 0) return null;
 
-  const toggleFavorite = (novel) => {
-    const id = getNovelId(novel);
-    if (!id) return;
+    return (
+        <div className="card shadow-sm p-3 mb-4" style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
+            <h3 className="mb-4 text-dark" style={{ borderBottom: '2px solid #ff6347', paddingBottom: '5px', fontSize: '1.5rem' }}>
+                {title}
+            </h3>
+            <div className="row g-3">
+                {topNovels.map((novel, index) => {
+                    const id = getNovelId(novel);
+                    const chapterCount = getChapterCount(novel);
 
-    if (!currentUser) {
-      localStorage.setItem("afterLoginFavorite", JSON.stringify(id));
-      navigate("/login");
-      return;
+                    return (
+                        <div key={id} className="col-12">
+                            <Link to={`/novel/${id}`} className="d-flex align-items-center p-2 text-decoration-none text-dark"
+                                style={{
+                                    borderBottom: '1px dotted #eee',
+                                    transition: 'background-color 0.2s',
+                                    backgroundColor: index < 3 ? '#fff5f5' : 'transparent'
+                                }}
+                            >
+                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', minWidth: '30px', color: index < 3 ? '#ff6347' : '#999' }}>
+                                    {index + 1}.
+                                </div>
+                                <img
+                                    src={novel.imgLink || novel.img || "https://via.placeholder.com/60x80?text=No+Image"}
+                                    alt={novel.novelName}
+                                    style={{ width: 40, height: 60, objectFit: 'cover', borderRadius: '4px', margin: '0 15px' }}
+                                />
+                                <div style={{ flexGrow: 1 }}>
+                                    <h6 className="m-0 text-truncate" style={{ color: '#444' }}>{novel.novelName}</h6>
+                                    <small className="text-muted">{novel.author || "Unknown"} | 📚 {chapterCount}</small>
+                                </div>
+                                <div className="ms-auto" style={{ fontSize: '0.9rem', color: '#ff6347' }}>
+                                    ⭐ {novel.rate ?? 0}
+                                </div>
+                            </Link>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+
+export default function HomepageUser() {
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { currentUser } = useSelector((state) => state.auth);
+
+    const [novels, setNovels] = useState([]);
+    const [chapters, setChapters] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const [favorites, setFavorites] = useState(
+        Array.isArray(currentUser?.favourites)
+            ? currentUser.favourites
+            : Array.isArray(currentUser?.favorites)
+                ? currentUser.favorites
+                : []
+    );
+
+    const [query, setQuery] = useState("");
+    const [selectedGenre, setSelectedGenre] = useState("All");
+    const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+
+    const fetchNovels = () => fetch("http://localhost:9999/novels").then(r => r.json());
+    const fetchChapters = () => fetch("http://localhost:9999/chapters").then(r => r.json());
+
+    useEffect(() => {
+        setLoading(true);
+        setError(null);
+
+        Promise.all([fetchNovels(), fetchChapters()])
+            .then(([novelsData, chaptersData]) => {
+                setNovels(novelsData || []);
+                setChapters(chaptersData || []);
+            })
+            .catch(err => {
+                console.error("Fetch error", err);
+                setError(err.message || "Fetch error");
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        setFavorites(
+            Array.isArray(currentUser?.favourites)
+                ? currentUser.favourites
+                : Array.isArray(currentUser?.favorites)
+                    ? currentUser.favorites
+                    : []
+        );
+    }, [currentUser]);
+
+    const allGenres = useMemo(() => {
+        const s = new Set();
+        novels.forEach(n => n.genres?.forEach(g => s.add(g)));
+        return ["All", ...s];
+    }, [novels]);
+
+    const getNovelId = useCallback((novel) => {
+        return novel?.id ?? novel?.novelId ?? null;
+    }, []);
+
+    const toggleFavorite = (novel) => {
+        const id = getNovelId(novel);
+        if (!id) return;
+
+        if (!currentUser) {
+            localStorage.setItem("afterLoginFavorite", JSON.stringify(id));
+            navigate("/login");
+            return;
+        }
+
+        setFavorites(prev => {
+            const exists = prev.includes(id);
+            const next = exists ? prev.filter(x => x !== id) : [...prev, id];
+
+            try {
+                const updatedUser = { ...currentUser, favourites: next, favorites: next };
+
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+
+                dispatch(authActions.loginSuccess(updatedUser));
+
+            } catch (e) {
+                console.warn("Cannot update user data in localStorage", e);
+            }
+
+            return next;
+        });
+    };
+
+    const filteredNovels = useMemo(() => {
+        return novels
+            .filter(n => {
+                const id = getNovelId(n);
+                if (showOnlyFavorites && !favorites.includes(id)) return false;
+
+                const name = (n.novelName || n.name || "").toString().toLowerCase();
+                const desc = (n.description || "").toString().toLowerCase();
+                const q = query.toLowerCase();
+
+                const matchQuery = q === "" || name.includes(q) || desc.includes(q);
+                const matchGenre = selectedGenre === "All" || n.genres?.includes(selectedGenre);
+
+                return matchQuery && matchGenre;
+            })
+            .sort((a, b) => (b.rate || 0) - (a.rate || 0));
+    }, [novels, query, selectedGenre, favorites, showOnlyFavorites, getNovelId]);
+
+    function getChapterCount(novel) {
+        if (novel.totalChapters != null) return novel.totalChapters;
+        const id = getNovelId(novel);
+        return chapters.filter(c => c.novelId === id || c.novelId === novel.novelId).length;
     }
 
-    setFavorites(prev => {
-      const exists = prev.includes(id);
-      const next = exists ? prev.filter(x => x !== id) : [...prev, id];
+    function getViews(novel) {
+        if (novel.views != null) return novel.views;
+        const id = getNovelId(novel);
+        const related = chapters.filter(c => c.novelId === id || c.novelId === novel.novelId);
+        return related.reduce((s, c) => s + (Number(c.views) || 0), 0);
+    }
 
-      try {
-        const cur = JSON.parse(localStorage.getItem("user")) || {};
-        cur.favourites = next;
-        cur.favorites = next;
-        localStorage.setItem("user", JSON.stringify(cur));
-      } catch (e) {
-        console.warn("Cannot update user data in localStorage", e);
-      }
+    function handleLogout() {
+        dispatch(authActions.logout());
+        navigate("/login");
+    }
 
-      return next;
-    });
-  };
+    function goToProfile() {
+        navigate("/profile");
+    }
 
-  const filteredNovels = useMemo(() => {
-    return novels
-      .filter(n => {
-        const id = getNovelId(n);
-        if (showOnlyFavorites && !favorites.includes(id)) return false;
+    const featuredNovel = useMemo(() => {
+        const novelsWithStats = novels.map(n => ({
+            ...n,
+            views: getViews(n),
+            chapterCount: getChapterCount(n)
+        }));
 
-        const name = (n.novelName || n.name || "").toString().toLowerCase();
-        const desc = (n.description || "").toString().toLowerCase();
-        const q = query.toLowerCase();
+        const qualifiedNovels = novelsWithStats.filter(n => n.views > 0 && n.chapterCount > 0);
 
-        const matchQuery = q === "" || name.includes(q) || desc.includes(q);
-        const matchGenre = selectedGenre === "All" || n.genres?.includes(selectedGenre);
+        if (qualifiedNovels.length > 0) {
+            return qualifiedNovels.sort((a, b) => {
+                if (b.rate !== a.rate) {
+                    return (b.rate || 0) - (a.rate || 0);
+                }
+                return (b.views || 0) - (a.views || 0);
+            })[0];
+        }
 
-        return matchQuery && matchGenre;
-      })
-      .sort((a, b) => (b.rate || 0) - (a.rate || 0));
-  }, [novels, query, selectedGenre, favorites, showOnlyFavorites, getNovelId]);
+        return null;
+        // eslint-disable-next-line
+    }, [novels, chapters]);
 
-  function getChapterCount(novel) {
-    if (novel.totalChapters != null) return novel.totalChapters;
-    const id = getNovelId(novel);
-    return chapters.filter(c => c.novelId === id || c.novelId === novel.novelId).length;
-  }
+    if (loading) return <div className="p-5 text-center">Loading data...</div>;
+    if (error) return <div className="p-5 text-danger text-center">Error: {error}</div>;
 
-  function getViews(novel) {
-    if (novel.views != null) return novel.views;
-    const id = getNovelId(novel);
-    const related = chapters.filter(c => c.novelId === id || c.novelId === novel.novelId);
-    return related.reduce((s, c) => s + (Number(c.views) || 0), 0);
-  }
 
-  function handleLogout() {
-    dispatch(authActions.logout());
-    navigate("/login");
-  }
+    return (
+        <>
+            <Navbar
+                query={query}
+                setQuery={setQuery}
+                showOnlyFavorites={showOnlyFavorites}
+                setShowOnlyFavorites={setShowOnlyFavorites}
+                currentUser={currentUser}
+                goToProfile={goToProfile}
+                handleLogout={handleLogout}
+            />
 
-  function goToProfile() {
-    navigate("/profile");
-  }
+            <div className="container py-4">
 
-  // Đã XÓA HÀM computeAvatarSrc
+                {featuredNovel && (
+                    <div className="p-5 mb-4 text-white rounded shadow-lg"
+                        style={{
+                            backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${featuredNovel.imgLink || 'https://via.placeholder.com/1200x300?text=Featured+Novel'})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            borderRadius: '12px'
+                        }}>
+                        <h1 className="display-5 fw-bold">{featuredNovel.novelName}</h1>
+                        <p className="lead">{featuredNovel.description?.substring(0, 150)}...</p>
+                        <Link to={`/novel/${getNovelId(featuredNovel)}`} className="btn btn-warning btn-lg">Read Now</Link>
+                    </div>
+                )}
 
-  if (loading) return <div className="p-10">Loading data...</div>;
-  if (error) return <div className="p-10 text-danger">Error: {error}</div>;
 
-  return (
-    <>
-      <Navbar
-        query={query}
-        setQuery={setQuery}
-        showOnlyFavorites={showOnlyFavorites}
-        setShowOnlyFavorites={setShowOnlyFavorites}
-        currentUser={currentUser}
-        goToProfile={goToProfile}
-        handleLogout={handleLogout}
-      />
+                <div className="row g-4">
 
-      <div className="container p-4">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2 className="m-0">Novel List</h2>
+                    <div className="col-lg-3 order-lg-last">
+                        <RankingSection
+                            novels={novels}
+                            getNovelId={getNovelId}
+                            getChapterCount={getChapterCount}
+                            title="Top Rated Novels"
+                            limit={6}
+                        />
 
-          <div>
-            <select
-              className="form-select"
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              style={{ minWidth: 160 }}
-            >
-              {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div className="row g-4">
-          {filteredNovels.map(novel => {
-            const id = getNovelId(novel);
-            const chapterCount = getChapterCount(novel);
-            const views = getViews(novel);
-            const isFav = id ? favorites.includes(id) : false;
-
-            return (
-              <div key={id ?? novel.novelId} className="col-12 col-sm-6 col-md-4 col-lg-3">
-                <div className="card h-100 shadow-sm">
-                  <div style={{ position: "relative" }}>
-                    <img
-                      src={novel.imgLink || novel.img || "https://via.placeholder.com/300x400?text=No+Image"}
-                      className="card-img-top"
-                      alt={novel.novelName}
-                      style={{ height: 250, objectFit: "cover" }}
-                    />
-                    <div style={{ position: "absolute", left: 8, top: 8, display: "flex", gap: 8 }}>
-                      <span className="badge bg-primary" title="Rating">⭐ {novel.rate ?? 0}</span>
-                      <span className="badge bg-success" title="Views">👁️ {views}</span>
+                        <RankingSection
+                            novels={novels}
+                            getNovelId={getNovelId}
+                            getChapterCount={getChapterCount}
+                            title="Latest Releases"
+                            limit={6}
+                        />
                     </div>
 
-                    <button
-                      onClick={() => toggleFavorite(novel)}
-                      className={`btn btn-sm ${isFav ? "btn-warning" : "btn-outline-light"}`}
-                      style={{ position: "absolute", right: 8, top: 8 }}
-                      title={isFav ? "Remove from favorites" : "Add to favorites"}
-                    >
-                      {isFav ? "★" : "☆"}
-                    </button>
-                  </div>
+                    <div className="col-lg-9 order-lg-first">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h2 className="m-0" style={{ color: '#444' }}>
+                                {showOnlyFavorites ? "My Favorites" : "All Novels"}
+                            </h2>
 
-                  <div className="card-body d-flex flex-column">
-                    <h5 className="card-title" style={{ minHeight: 48 }}>{novel.novelName}</h5>
-                    <p className="card-text text-muted" style={{ fontSize: 14 }}>
-                      {novel.description?.length > 120 ? `${novel.description.substring(0, 120)}...` : novel.description}
-                    </p>
+                            <div className="d-flex align-items-center gap-3">
+                                <label className="m-0 text-muted small">Filter by Genre:</label>
+                                <select
+                                    className="form-select"
+                                    value={selectedGenre}
+                                    onChange={(e) => setSelectedGenre(e.target.value)}
+                                    style={{ minWidth: 160, borderRadius: '8px' }}
+                                >
+                                    {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                                </select>
+                            </div>
+                        </div>
 
-                    <div className="mt-3 d-flex justify-content-between align-items-center">
-                      <div style={{ fontSize: 13 }}>
-                        <span className="me-3">📚 {chapterCount} chap</span>
-                        <span className="text-muted">👤 {novel.author || "Unknown"}</span>
-                      </div>
+                        <div className="row g-4">
+                            {filteredNovels.map(novel => {
+                                const id = getNovelId(novel);
+                                const chapterCount = getChapterCount(novel);
+                                const views = getViews(novel);
+                                const isFav = id ? favorites.includes(id) : false;
 
-                      <div className="d-flex align-items-center gap-2">
-                        <Link className="btn btn-sm btn-primary" to={`/novel/${id ?? novel.novelId}`}>Read</Link>
-                      </div>
+                                return (
+                                    <div key={id ?? novel.novelId} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <NovelCard
+                                            novel={novel}
+                                            id={id}
+                                            chapterCount={chapterCount}
+                                            views={views}
+                                            isFav={isFav}
+                                            toggleFavorite={toggleFavorite}
+                                        />
+                                    </div>
+                                );
+                            })}
+
+                            {filteredNovels.length === 0 && (
+                                <div className="col-12">
+                                    <div className="alert alert-info">No novels found matching criteria.</div>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                  </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {filteredNovels.length === 0 && (
-            <div className="col-12">
-              <div className="alert alert-info">No novels found.</div>
             </div>
-          )}
-        </div>
-      </div>
-      <Outlet />
-    </>
-  );
+            <Outlet />
+        </>
+    );
 }
