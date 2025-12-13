@@ -1,7 +1,10 @@
 import React, { useState } from "react";
-import { Container, Card, Form, Button, Alert, Row, Col, Spinner } from "react-bootstrap";
+import {
+    Container, Card, Form, Button, Alert, Spinner
+} from "react-bootstrap";
 import { instance } from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
+import { validateCreateUserForm } from "../../utils/validators";
 
 const CreateUser = () => {
     const navigate = useNavigate();
@@ -11,7 +14,9 @@ const CreateUser = () => {
         password: "",
         role: ""
     });
-    const [error, setError] = useState("");
+
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [serverError, setServerError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -20,34 +25,46 @@ const CreateUser = () => {
             ...prev,
             [name]: value
         }));
+
+        if (fieldErrors[name]) {
+            setFieldErrors(prev => ({ ...prev, [name]: null }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError("");
-        setIsLoading(true);
+        setServerError("");
+        setFieldErrors({});
 
-        if (!formData.userName || !formData.email || !formData.password || !formData.role) {
-            setError("Please fill in all fields");
-            setIsLoading(false);
+        const errors = validateCreateUserForm(formData);
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
+
+        setIsLoading(true);
 
         try {
             const checkRes = await instance.get(`users?userName=${formData.userName}`);
             if (checkRes.data.length > 0) {
-                setError("Username already exists!");
+                setFieldErrors({ userName: 'Username already exists!' });
                 setIsLoading(false);
                 return;
             }
 
-            await instance.post("users", formData);
+            await instance.post("users", {
+                userName: formData.userName,
+                email: formData.email,
+                pwd: formData.password,
+                role: formData.role
+            });
 
             alert("Create user successfully!");
             navigate("/admin/dashboard");
 
         } catch (err) {
-            setError(err.response?.data?.message || err.message);
+            setServerError(err.response?.data?.message || err.message || "Failed to create user.");
         } finally {
             setIsLoading(false);
         }
@@ -58,9 +75,10 @@ const CreateUser = () => {
             <Card className="p-4 mx-auto" style={{ borderRadius: 20, maxWidth: "600px" }}>
                 <h3 className="text-center text-primary fw-bold mb-4">Create New User</h3>
 
-                {error && <Alert variant="danger">{error}</Alert>}
+                {serverError && <Alert variant="danger">{serverError}</Alert>}
 
-                <Form onSubmit={handleSubmit}>
+                <Form onSubmit={handleSubmit} noValidate>
+
                     <Form.Group className="mb-3">
                         <Form.Label>Username</Form.Label>
                         <Form.Control
@@ -68,8 +86,12 @@ const CreateUser = () => {
                             name="userName"
                             value={formData.userName}
                             onChange={handleChange}
-                            placeholder="Enter user name"
+                            placeholder="Ex: manager01"
+                            isInvalid={!!fieldErrors.userName}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {fieldErrors.userName}
+                        </Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
@@ -79,8 +101,12 @@ const CreateUser = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            placeholder="Enter email"
+                            placeholder="Ex: manager@gmail.com"
+                            isInvalid={!!fieldErrors.email}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {fieldErrors.email}
+                        </Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group className="mb-3">
@@ -90,8 +116,12 @@ const CreateUser = () => {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            placeholder="Enter password"
+                            placeholder="Min 6 characters"
+                            isInvalid={!!fieldErrors.password}
                         />
+                        <Form.Control.Feedback type="invalid">
+                            {fieldErrors.password}
+                        </Form.Control.Feedback>
                     </Form.Group>
 
                     <Form.Group className="mb-4">
@@ -100,12 +130,16 @@ const CreateUser = () => {
                             name="role"
                             value={formData.role}
                             onChange={handleChange}
+                            isInvalid={!!fieldErrors.role}
                         >
                             <option value="">-- Select Role --</option>
                             <option value="admin">Admin</option>
                             <option value="manager">Manager</option>
                             <option value="reader">Reader</option>
                         </Form.Select>
+                        <Form.Control.Feedback type="invalid">
+                            {fieldErrors.role}
+                        </Form.Control.Feedback>
                     </Form.Group>
 
                     <div className="d-flex gap-2 justify-content-end">

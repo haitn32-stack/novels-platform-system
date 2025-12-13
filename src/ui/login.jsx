@@ -57,7 +57,6 @@ const Login = ({ title }) => {
     return (
         <div
             style={{
-                // Nền mô phỏng thư viện/sách
                 backgroundImage: 'url("https://images.unsplash.com/photo-1549495039-44f248e3549c?q=80&w=1920&h=1080&auto=format&fit=crop")',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -71,7 +70,6 @@ const Login = ({ title }) => {
             <Card
                 style={{
                     width: '400px',
-                    // Card trong suốt, nổi bật
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     borderRadius: '15px',
                     boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
@@ -79,7 +77,6 @@ const Login = ({ title }) => {
                 }}
             >
                 <Card.Header className="text-center" style={{ background: 'none', borderBottom: 'none', padding: '20px 0 0' }}>
-                    {/* Logo/Icon truyện */}
                     <div className="mb-2" style={{ fontSize: '3rem', color: '#ff6347' }}>
                         📖
                     </div>
@@ -152,7 +149,7 @@ Login.propTypes = {
 };
 
 Login.defaultProps = {
-    title: 'Welcome to Novel App', // Đổi tiêu đề mặc định
+    title: 'Welcome to Novel App',
 };
 
 export default Login;

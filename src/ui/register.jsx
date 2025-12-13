@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { instance } from '../utils/axios';
+import { validateRegisterForm } from '../utils/validators';
 
 const Register = ({ title }) => {
     const navigate = useNavigate();
@@ -14,23 +15,26 @@ const Register = ({ title }) => {
         confirmPwd: ''
     });
 
-    const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
+    const [serverError, setServerError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        if (fieldErrors[e.target.name]) {
+            setFieldErrors({ ...fieldErrors, [e.target.name]: null });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+        setServerError('');
+        setFieldErrors({});
 
-        if (!formData.userName || !formData.pwd || !formData.email) {
-            setError('Please fill in all required fields.');
-            return;
-        }
-        if (formData.pwd !== formData.confirmPwd) {
-            setError('The confirmation password does not match.');
+        const errors = validateRegisterForm(formData);
+
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
@@ -42,7 +46,7 @@ const Register = ({ title }) => {
             });
 
             if (checkRes.data.length > 0) {
-                setError('Username already exists!');
+                setFieldErrors({ userName: 'Username already exists!' });
                 setIsLoading(false);
                 return;
             }
@@ -51,14 +55,14 @@ const Register = ({ title }) => {
                 userName: formData.userName,
                 email: formData.email,
                 pwd: formData.pwd,
-                roles: 'reader'
+                role: 'reader'
             });
 
             alert('Registration successful! Please log in.');
             navigate('/login');
 
         } catch (err) {
-            setError('An error occurred: ' + err.message);
+            setServerError('An error occurred: ' + err.message);
         } finally {
             setIsLoading(false);
         }
@@ -72,7 +76,7 @@ const Register = ({ title }) => {
                 </Card.Header>
 
                 <Card.Body>
-                    {error && <Alert variant="danger">{error}</Alert>}
+                    {serverError && <Alert variant="danger">{serverError}</Alert>}
 
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
@@ -83,7 +87,11 @@ const Register = ({ title }) => {
                                 placeholder="Choose a username"
                                 value={formData.userName}
                                 onChange={handleChange}
+                                isInvalid={!!fieldErrors.userName}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {fieldErrors.userName}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
@@ -94,7 +102,11 @@ const Register = ({ title }) => {
                                 placeholder="enter@email.com"
                                 value={formData.email}
                                 onChange={handleChange}
+                                isInvalid={!!fieldErrors.email}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {fieldErrors.email}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
@@ -102,10 +114,14 @@ const Register = ({ title }) => {
                             <Form.Control
                                 type="password"
                                 name="pwd"
-                                placeholder="Password"
+                                placeholder="Min 6 characters"
                                 value={formData.pwd}
                                 onChange={handleChange}
+                                isInvalid={!!fieldErrors.pwd}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {fieldErrors.pwd}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <Form.Group className="mb-4">
@@ -116,7 +132,11 @@ const Register = ({ title }) => {
                                 placeholder="Re-enter password"
                                 value={formData.confirmPwd}
                                 onChange={handleChange}
+                                isInvalid={!!fieldErrors.confirmPwd}
                             />
+                            <Form.Control.Feedback type="invalid">
+                                {fieldErrors.confirmPwd}
+                            </Form.Control.Feedback>
                         </Form.Group>
 
                         <div className="d-grid gap-2">
@@ -135,12 +155,7 @@ const Register = ({ title }) => {
     );
 };
 
-Register.propTypes = {
-    title: PropTypes.string
-};
-
-Register.defaultProps = {
-    title: 'Register Account'
-};
+Register.propTypes = { title: PropTypes.string };
+Register.defaultProps = { title: 'Register Account' };
 
 export default Register;
