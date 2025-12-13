@@ -1,29 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux"; // THÊM REDUX
+import { useSelector, useDispatch } from "react-redux";
 import Navbar from "./nvarbar";
-import { authActions } from "../../feature/auth/authSlice"; // Sửa đường dẫn thực tế
+import { authActions } from "../../feature/auth/authSlice";
+
+const API_URL = "http://localhost:9999";
 
 export default function NovelDetail() {
     const { novelId } = useParams();
     const navigate = useNavigate();
-    const dispatch = useDispatch(); // Dùng cho Logout
+    const dispatch = useDispatch();
 
-    // SỬ DỤNG REDUX CHO TRẠNG THÁI NGƯỜI DÙNG
     const { currentUser: reduxUser } = useSelector((state) => state.auth);
 
     const [novel, setNovel] = useState(null);
     const [chapters, setChapters] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Favorites: Được tính toán từ Redux User, nếu có
     const [favorites, setFavorites] = useState([]);
 
-    // Cảnh báo: currentUser, favorites ban đầu được thiết lập từ state cục bộ, 
-    // nhưng giờ ta dùng Redux. Xóa logic khởi tạo Local Storage trong useEffect.
-
     useEffect(() => {
-        // Cập nhật Favorites từ Redux User
         if (reduxUser) {
             const favs = reduxUser.favourites || reduxUser.favorites || [];
             setFavorites(favs);
@@ -31,10 +27,9 @@ export default function NovelDetail() {
             setFavorites([]);
         }
 
-        // fetch novels + chapters from json-server
         Promise.all([
-            fetch("http://localhost:9999/novels").then(r => r.json()),
-            fetch("http://localhost:9999/chapters").then(r => r.json())
+            fetch(`${API_URL}/novels`).then(r => r.json()),
+            fetch(`${API_URL}/chapters`).then(r => r.json())
         ])
             .then(([novelList, chapterList]) => {
                 const n = novelList.find(v => String(v.novelId) === String(novelId) || String(v.id) === String(novelId));
@@ -47,7 +42,7 @@ export default function NovelDetail() {
                 console.error("Fetch error", err);
             })
             .finally(() => setLoading(false));
-    }, [novelId, reduxUser]); // Thêm reduxUser vào dependency array
+    }, [novelId, reduxUser]);
 
     function toggleFavorite() {
         if (!reduxUser) {
@@ -60,11 +55,9 @@ export default function NovelDetail() {
             const exists = prev.includes(novelId);
             const next = exists ? prev.filter(x => x !== novelId) : [...prev, novelId];
 
-            // SỬ DỤNG KEY "user" ĐỒNG BỘ
             const updatedUser = { ...reduxUser, favourites: next, favorites: next };
             localStorage.setItem("user", JSON.stringify(updatedUser));
 
-            // Cập nhật Redux store (để đồng bộ Navbar)
             dispatch(authActions.loginSuccess(updatedUser));
 
             return next;
@@ -76,25 +69,19 @@ export default function NovelDetail() {
 
     const isFav = favorites.includes(novelId);
 
-    // Hàm này không cần nữa vì Navbar tự xử lý avatar, nhưng tôi giữ lại goToProfile và handleLogout.
     function goToProfile() {
         navigate("/profile");
     }
 
     function handleLogout() {
         dispatch(authActions.logout());
-        // Sử dụng navigate để loại bỏ cảnh báo ESLint
         navigate("/login");
     }
 
     return (
         <>
             <Navbar
-                query=""
-                setQuery={() => { }}
-                showOnlyFavorites={false}
-                setShowOnlyFavorites={() => { }}
-                currentUser={reduxUser} // TRUYỀN REDUX USER
+                currentUser={reduxUser}
                 goToProfile={goToProfile}
                 handleLogout={handleLogout}
             />
@@ -137,10 +124,12 @@ export default function NovelDetail() {
                     <p className="text-muted">No chapters yet.</p>
                 ) : (
                     <ul className="list-group mt-3">
-                        {chapters.map(ch => (
-                            <li key={ch.chapterId} className="list-group-item d-flex justify-content-between align-items-center">
+                        {chapters
+                            .sort((a, b) => a.chapterNumber - b.chapterNumber)
+                            .map(ch => (
+                            <li key={ch.id} className="list-group-item d-flex justify-content-between align-items-center">
                                 <span><strong>Chapter {ch.chapterNumber}:</strong> {ch.title}</span>
-                                <Link className="btn btn-primary btn-sm" to={`/chapter/${ch.chapterId}`}>Read</Link>
+                                <Link className="btn btn-primary btn-sm" to={`/chapter/${ch.id}`}>Read</Link>
                             </li>
                         ))}
                     </ul>
