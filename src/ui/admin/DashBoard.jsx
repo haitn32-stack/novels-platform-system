@@ -16,7 +16,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { instance } from "../../utils/axios";
-import EditUserModal from "./EditUserModel";
+import EditUserModal from "./EditUserModal";
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -146,28 +146,6 @@ const Dashboard = () => {
 
     return (
         <>
-            <Navbar bg="primary" variant="dark" className="px-4 py-3 shadow-sm">
-                <Container fluid>
-                    <Navbar.Brand className="fw-bold">
-                        Admin Dashboard
-                    </Navbar.Brand>
-                    <div className="text-white">
-                        <strong>{currentUser?.userName || "Admin"}</strong>
-                        <Badge bg="danger" className="ms-2">
-                            {currentUser?.role?.toUpperCase()}
-                        </Badge>
-                        <Button
-                            variant="light"
-                            size="sm"
-                            className="ms-3 rounded-pill"
-                            onClick={handleLogout}
-                        >
-                            Logout
-                        </Button>
-                    </div>
-                </Container>
-            </Navbar>
-
             <Container fluid className="p-5">
                 <Card className="p-4 mb-4" style={{ borderRadius: 20 }}>
                     <h2 className="text-center text-primary fw-bold mb-4">User Management</h2>

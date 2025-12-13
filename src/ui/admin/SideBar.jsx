@@ -21,14 +21,14 @@ export default function SideBar() {
     return (
         <div
             style={{
-                width: 260, // Rộng hơn xíu cho thoáng
+                width: 260,
                 background: "linear-gradient(180deg,rgb(77, 124, 196) 0%,rgb(60, 115, 178) 100%)",
                 color: "white",
                 padding: 20,
                 display: "flex",
                 flexDirection: "column",
                 minHeight: "100vh",
-                position: "sticky", // Giữ cố định khi cuộn
+                position: "sticky",
                 top: 0
             }}
         >
@@ -45,12 +45,11 @@ export default function SideBar() {
                 <i className="bi bi-people-fill me-2"></i> User Management
             </button>
 
-            {/* Ví dụ thêm menu khác */}
             <button
-                className={getBtnClass("/admin/settings")}
-                onClick={() => alert("Tính năng đang phát triển")} // navigate("/admin/settings")
+                className={getBtnClass("/admin/creation")}
+                onClick={() => alert("Tính năng đang phát triển")}
             >
-                <i className="bi bi-gear-fill me-2"></i> Settings
+                <i className="bi bi-gear-fill me-2"></i>Create
             </button>
 
             {/* Spacer để đẩy nút Logout xuống đáy */}

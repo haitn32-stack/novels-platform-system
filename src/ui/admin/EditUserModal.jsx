@@ -120,9 +120,6 @@ const EditUserModal = ({ show, user, handleClose }) => {
                             onChange={handleChange}
                             placeholder="Enter new password"
                         />
-                        <Form.Text className="text-muted">
-                            Only enter if you want to change the password
-                        </Form.Text>
                     </Form.Group>
 
                     <div className="d-flex justify-content-end gap-2">
