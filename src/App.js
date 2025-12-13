@@ -20,7 +20,8 @@ import SearchBook from "./ui/user/searchBook";
 import NovelDetail from "./ui/user/novelDetail";
 import Profile from "./ui/user/profile";
 import ChapterDetail from "./ui/user/ChapterDetail";
-
+import FavoritePage from "./ui/user/Favorite";
+import Leaderboard from "./ui/user/Leaderboard";
 const AdminRoute = ({ children }) => {
     const { currentUser } = useSelector((state) => state.auth);
     const role = currentUser?.role?.toLowerCase();
@@ -67,7 +68,8 @@ function App() {
                 <Route path="/novel/:novelId" element={<NovelDetail />} />
                 <Route path="/chapter/:chapterId" element={<ChapterDetail />} />
                 <Route path="/profile" element={<Profile />} />
-
+                <Route path="/favorites" element={<FavoritePage />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route
                     path="/admin"
                     element={
