@@ -11,16 +11,11 @@ import {
     Spinner,
     Badge,
     Alert,
-    Button,
-    Navbar,
 } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
 import { instance } from "../../utils/axios";
 import EditUserModal from "./EditUserModal";
 
 const Dashboard = () => {
-    const dispatch = useDispatch();
-    const { currentUser } = useSelector((state) => state.auth);
 
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -50,14 +45,6 @@ const Dashboard = () => {
     useEffect(() => {
         fetchUsers();
     }, []);
-
-    const handleLogout = () => {
-        if (window.confirm("Are you sure you want to logout?")) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            dispatch({ type: "auth/logout" });
-        }
-    };
 
     const handleDeleteUser = async (userId) => {
         if (!window.confirm(`Are you sure you want to delete user ID ${userId}?`)) return;
@@ -224,21 +211,29 @@ const Dashboard = () => {
                                                 {renderRoleBadge(u.role)}
                                             </td>
                                             <td className="text-center">
-                                                <Badge
-                                                    bg="info"
-                                                    className="me-2"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => handleEditUser(u)}
-                                                >
-                                                    Edit
-                                                </Badge>
-                                                <Badge
-                                                    bg="danger"
-                                                    style={{ cursor: "pointer" }}
-                                                    onClick={() => handleDeleteUser(u.id)}
-                                                >
-                                                    Delete
-                                                </Badge>
+                                                {u.role === 'admin' ? (
+                                                    <span className="text-muted fst-italic">
+                                                        <i className="bi bi-lock-fill me-1"></i> Protected
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        <Badge
+                                                            bg="info"
+                                                            className="me-2"
+                                                            style={{ cursor: "pointer" }}
+                                                            onClick={() => handleEditUser(u)}
+                                                        >
+                                                            Edit
+                                                        </Badge>
+                                                        <Badge
+                                                            bg="danger"
+                                                            style={{ cursor: "pointer" }}
+                                                            onClick={() => handleDeleteUser(u.id)}
+                                                        >
+                                                            Delete
+                                                        </Badge>
+                                                    </>
+                                                )}
                                             </td>
                                         </tr>
                                     ))

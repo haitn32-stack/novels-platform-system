@@ -5,11 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c23864ed-3dad-4c45-ac7e-107322a21bf3" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/ui/admin/Layout.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ui/admin/SideBar.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/ui/admin/CreateUser.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/admin/dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/admin/DashBoard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ui/manager/sidebar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/manager/sidebar.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/admin/DashBoard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/admin/DashBoard.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ui/admin/SideBar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/ui/admin/SideBar.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,6 +87,7 @@
       <workItem from="1765438105625" duration="3151000" />
       <workItem from="1765524927024" duration="317000" />
       <workItem from="1765536429529" duration="1186000" />
+      <workItem from="1765664894477" duration="950000" />
     </task>
     <servers />
   </component>

@@ -13,7 +13,6 @@ export default function SideBar() {
         navigate("/login");
     };
 
-    // Hàm kiểm tra active để đổi màu nút
     const isActive = (path) => location.pathname === path;
     const getBtnClass = (path) =>
         `btn ${isActive(path) ? 'btn-light text-primary fw-bold' : 'btn-outline-light'} mb-2 text-start`;
@@ -34,10 +33,9 @@ export default function SideBar() {
         >
             <div className="text-center mb-5 mt-2">
                 <h4 className="fw-bold m-0">ADMIN PANEL</h4>
-                <small style={{ opacity: 0.8 }}>Novel System</small>
+                <small style={{ opacity: 0.8 }}>Novel Platform System</small>
             </div>
 
-            {/* Menu Items */}
             <button
                 className={getBtnClass("/admin/dashboard")}
                 onClick={() => navigate("/admin/dashboard")}
@@ -47,12 +45,11 @@ export default function SideBar() {
 
             <button
                 className={getBtnClass("/admin/creation")}
-                onClick={() => alert("Tính năng đang phát triển")}
+                onClick={() => navigate("/admin/creation")}
             >
-                <i className="bi bi-gear-fill me-2"></i>Create
+                <i className="bi bi-plus-circle-fill me-2"></i> Create User
             </button>
 
-            {/* Spacer để đẩy nút Logout xuống đáy */}
             <div style={{ flexGrow: 1 }} />
 
             <div className="border-top pt-3 mt-3" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
