@@ -147,26 +147,7 @@
       "createdAt": "2024-08-22",
       "updatedAt": "2024-12-02"
     },
-    {
-      "novelId": "n550",
-      "novelName": "Light",
-      "description": "Test....",
-      "imgLink": "https://images.unsplash.com/photo-1765451817006-4a9f9cb3afc4?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8",
-      "genres": [
-        "Action",
-        "Adventure",
-        "Horror"
-      ],
-      "author": "John",
-      "status": "ongoing",
-      "rate": 5,
-      "views": 0,
-      "totalChapters": 0,
-      "uploadBy": "u002",
-      "createdAt": "2025-12-11",
-      "updatedAt": "2025-12-11",
-      "id": "Mmt9VlL"
-    },
+    
     {
       "id": "n006",
       "novelName": "Cybernetic Samurai",
