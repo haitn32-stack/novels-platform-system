@@ -126,10 +126,13 @@ export default function FavoritePage() {
             const next = exists ? prev.filter(x => x !== id) : [...prev, id];
 
             try {
-                const cur = JSON.parse(localStorage.getItem("user")) || {};
-                cur.favourites = next;
-                cur.favorites = next;
-                localStorage.setItem("user", JSON.stringify(cur));
+                const updatedUser = { ...currentUser, favourites: next, favorites: next };
+                
+                // Đồng bộ LocalStorage
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                
+                // Cập nhật Redux store
+                dispatch(authActions.loginSuccess(updatedUser)); 
             } catch (e) {
                 console.warn("Cannot update user data in localStorage", e);
             }
@@ -156,6 +159,7 @@ export default function FavoritePage() {
         return related.reduce((s, c) => s + (Number(c.views) || 0), 0);
     }
 
+    // ĐỊNH NGHĨA CÁC HÀM BỊ THIẾU
     function handleLogout() {
         dispatch(authActions.logout());
         navigate("/login");
