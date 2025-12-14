@@ -66,41 +66,59 @@ const RankingSection = ({ novels, getNovelId, getChapterCount, limit = 6, title 
     if (topNovels.length === 0) return null;
 
     return (
-        <div className="card shadow-sm p-3 mb-4" style={{ borderRadius: '12px', border: '1px solid #f0f0f0' }}>
-            <h3 className="mb-4 text-dark" style={{ borderBottom: '2px solid #ff6347', paddingBottom: '5px', fontSize: '1.5rem' }}>
-                {title}
-            </h3>
-            <div className="row g-3">
+        <div className="card shadow-sm mb-4" style={{ borderRadius: '12px', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+            <div style={{ padding: '20px 20px 15px' }}>
+                <h3 className="mb-0 text-dark" style={{ borderBottom: '2px solid #ff6347', paddingBottom: '8px', fontSize: '1.3rem', fontWeight: '600' }}>
+                    {title}
+                </h3>
+            </div>
+            <div>
                 {topNovels.map((novel, index) => {
                     const id = getNovelId(novel);
                     const chapterCount = getChapterCount(novel);
 
                     return (
-                        <div key={id} className="col-12">
-                            <Link to={`/novel/${id}`} className="d-flex align-items-center p-2 text-decoration-none text-dark"
-                                style={{
-                                    borderBottom: '1px dotted #eee',
-                                    transition: 'background-color 0.2s',
-                                    backgroundColor: index < 3 ? '#fff5f5' : 'transparent'
+                        <Link 
+                            key={id} 
+                            to={`/novel/${id}`} 
+                            className="d-flex align-items-center text-decoration-none text-dark"
+                            style={{
+                                padding: '12px 20px',
+                                borderBottom: index < topNovels.length - 1 ? '1px solid #f5f5f5' : 'none',
+                                transition: 'background-color 0.2s',
+                                backgroundColor: index < 3 ? '#fffaf5' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index < 3 ? '#fffaf5' : 'transparent'}
+                        >
+                            <div style={{ fontSize: '1.1rem', fontWeight: '700', minWidth: '28px', color: index < 3 ? '#ff6347' : '#aaa' }}>
+                                {index + 1}.
+                            </div>
+                            <img
+                                src={novel.imgLink || novel.img || "https://via.placeholder.com/60x90?text=No+Image"}
+                                alt={novel.novelName}
+                                style={{ 
+                                    width: 48, 
+                                    height: 70, 
+                                    objectFit: 'cover', 
+                                    borderRadius: '6px', 
+                                    margin: '0 12px',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                 }}
-                            >
-                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', minWidth: '30px', color: index < 3 ? '#ff6347' : '#999' }}>
-                                    {index + 1}.
+                            />
+                            <div style={{ flexGrow: 1, minWidth: 0 }}>
+                                <h6 className="m-0 text-truncate" style={{ color: '#333', fontSize: '0.95rem', fontWeight: '600', marginBottom: '4px' }}>
+                                    {novel.novelName} {index < 3 && '⭐'}
+                                </h6>
+                                <div style={{ fontSize: '0.8rem', color: '#888' }}>
+                                    <span className="text-truncate d-inline-block" style={{ maxWidth: '120px' }}>{novel.author || "Unknown"}</span>
+                                    <span> | 📚 {chapterCount}</span>
                                 </div>
-                                <img
-                                    src={novel.imgLink || novel.img || "https://via.placeholder.com/60x80?text=No+Image"}
-                                    alt={novel.novelName}
-                                    style={{ width: 40, height: 60, objectFit: 'cover', borderRadius: '4px', margin: '0 15px' }}
-                                />
-                                <div style={{ flexGrow: 1 }}>
-                                    <h6 className="m-0 text-truncate" style={{ color: '#444' }}>{novel.novelName}</h6>
-                                    <small className="text-muted">{novel.author || "Unknown"} | 📚 {chapterCount}</small>
-                                </div>
-                                <div className="ms-auto" style={{ fontSize: '0.9rem', color: '#ff6347' }}>
-                                    ⭐ {novel.rate ?? 0}
-                                </div>
-                            </Link>
-                        </div>
+                            </div>
+                            <div style={{ fontSize: '0.95rem', color: '#ff6347', fontWeight: '600', marginLeft: '8px' }}>
+                                {novel.rate ?? 0}
+                            </div>
+                        </Link>
                     );
                 })}
             </div>
